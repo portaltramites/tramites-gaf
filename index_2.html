@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal de Trámites · La Calera</title>
+<style>
+  :root{
+    --verde:#00913F;
+    --verde-oscuro2:#006b2f;
+    --verde-claro:#e6f4ec;
+    --verde-claro2:#f2f9f4;
+    --negro:#1c1f1d;
+    --gris-txt:#5c635f;
+    --gris-bg:#f5f7f5;
+    --gris-borde:#dfe5e1;
+    --blanco:#ffffff;
+    --ambar:#b8790a;
+    --ambar-bg:#fbf1de;
+    --verde-txt:#0d6b34;
+    --rojo:#b3362c;
+    --rojo-bg:#fbebe9;
+    --sombra: 0 1px 2px rgba(20,30,24,0.06), 0 1px 8px rgba(20,30,24,0.04);
+    --radio: 10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--gris-bg);
+    color:var(--negro);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{
+    font-family:Georgia,"Times New Roman",serif;
+    margin:0 0 4px 0;
+    color:var(--negro);
+    letter-spacing:0.2px;
+  }
+  .app{max-width:1080px;margin:0 auto;padding:0 18px 60px;}
+  /* ===== Header (alto impacto) ===== */
+  .topbar{
+    background:linear-gradient(135deg,var(--verde) 0%,var(--verde-oscuro2) 100%);
+    border-bottom:none;
+    padding:26px 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+    flex-wrap:wrap;
+    box-shadow:0 4px 18px rgba(0,0,0,.15);
+  }
+  .brand{display:flex;align-items:center;gap:22px;}
+  .brand img{height:52px;display:block;filter:brightness(0) invert(1);flex-shrink:0;margin-right:22px;}
+  .brand-text{display:flex;flex-direction:column;}
+  .brand-text .eyebrow{
+    font-size:14px;letter-spacing:1.6px;text-transform:uppercase;
+    color:#ffffff;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.15);
+  }
+  .brand-text .title{font-family:Georgia,serif;font-size:22px;font-weight:700;color:#ffffff;margin-top:2px;}
+  .tabs{display:flex;gap:6px;background:rgba(255,255,255,.16);padding:5px;border-radius:999px;}
+  .tab-btn{
+    border:none;background:transparent;padding:10px 20px;border-radius:999px;
+    font-size:14.5px;font-weight:700;color:#ffffff;cursor:pointer;
+    transition:all .15s ease;
+    opacity:.85;
+  }
+  .tab-btn.active{background:#ffffff;color:var(--verde-oscuro2);box-shadow:var(--sombra);opacity:1;}
+  .tab-btn:not(.active):hover{color:#fff;opacity:1;}
+
+  /* ===== Layout helpers ===== */
+  .view{display:none;padding-top:26px;}
+  .view.active{display:block;}
+  .card{
+    background:var(--blanco);
+    border:1px solid var(--gris-borde);
+    border-radius:var(--radio);
+    padding:22px;
+    box-shadow:var(--sombra);
+    margin-bottom:20px;
+  }
+  .card h2{font-size:19px;}
+  .subtitle{color:var(--gris-txt);font-size:13.5px;margin-bottom:16px;}
+  .pill{
+    display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700;
+    letter-spacing:.3px;text-transform:uppercase;
+  }
+  .pill-pendiente{background:var(--ambar-bg);color:var(--ambar);}
+  .pill-aprobado{background:var(--verde-claro);color:var(--verde-txt);}
+  .pill-rechazado{background:var(--rojo-bg);color:var(--rojo);}
+
+  /* ===== Buscador colaborador ===== */
+  .search-row{display:flex;gap:10px;flex-wrap:wrap;}
+  input[type=text], input[type=number], input[type=date], select, textarea{
+    font-family:inherit;font-size:14.5px;padding:10px 12px;
+    border:1.5px solid var(--gris-borde);border-radius:8px;
+    background:#fff;color:var(--negro);width:100%;
+  }
+  input[type=file]{
+    font-family:inherit;font-size:13.5px;padding:9px 10px;
+    border:1.5px dashed var(--gris-borde);border-radius:8px;
+    background:#fafbfa;color:var(--gris-txt);width:100%;
+  }
+  input[type=file]:focus{outline:none;border-color:var(--verde);}
+  input:focus, select:focus, textarea:focus{outline:none;border-color:var(--verde);box-shadow:0 0 0 3px var(--verde-claro);}
+  .search-row input{flex:1;min-width:220px;}
+  .search-results{margin-top:10px;border-radius:8px;overflow:hidden;border:1px solid var(--gris-borde);display:none;}
+  .search-results.show{display:block;}
+  .search-item{
+    padding:11px 14px;border-bottom:1px solid var(--gris-borde);cursor:pointer;
+    display:flex;justify-content:space-between;align-items:center;background:#fff;
+    transition:background .1s;
+  }
+  .search-item:last-child{border-bottom:none;}
+  .search-item:hover{background:var(--verde-claro2);}
+  .search-item .nom{font-weight:600;font-size:14px;}
+  .search-item .meta{font-size:12px;color:var(--gris-txt);}
+  .search-item .dni{font-size:12px;color:var(--gris-txt);font-variant-numeric:tabular-nums;}
+
+  .empleado-card{
+    display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+    background:var(--verde-claro2);border:1px solid var(--verde-claro);border-radius:10px;padding:16px 18px;
+  }
+  .empleado-info .nombre{font-weight:700;font-size:22px;margin-bottom:2px;text-transform:uppercase;letter-spacing:.3px;}
+  .empleado-info .cargo{font-size:11.5px;color:var(--verde-txt);font-weight:600;margin-bottom:6px;text-transform:capitalize;}
+  .empleado-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px 22px;font-size:13px;color:var(--gris-txt);}
+  .empleado-grid b{color:var(--negro);font-weight:600;}
+  .link-btn{background:none;border:none;color:var(--verde-txt);font-weight:700;font-size:13px;cursor:pointer;text-decoration:underline;padding:4px;}
+
+  /* ===== Selector de trámite ===== */
+  .tramite-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;}
+  .tramite-card{
+    border:1.5px solid var(--gris-borde);border-radius:10px;padding:16px;cursor:pointer;
+    background:#fff;transition:all .15s ease;text-align:left;
+  }
+  .tramite-card:hover{border-color:var(--verde);transform:translateY(-2px);box-shadow:var(--sombra);}
+  .tramite-card.selected{border-color:var(--verde);background:var(--verde-claro2);box-shadow:0 0 0 3px var(--verde-claro);}
+  .tramite-card .icon{color:var(--verde);margin-bottom:10px;}
+  .tramite-card .nom{font-weight:700;font-size:14.5px;margin-bottom:3px;}
+  .tramite-card .desc{font-size:12px;color:var(--gris-txt);}
+
+  /* ===== Formulario ===== */
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .form-grid.full, .field.full{grid-column:1/-1;}
+  .field label{display:block;font-size:12.5px;font-weight:700;color:var(--negro);margin-bottom:5px;}
+  .field .hint{font-size:11.5px;color:var(--gris-txt);margin-top:4px;}
+  .radio-group{display:flex;gap:16px;flex-wrap:wrap;padding-top:4px;}
+  .radio-group label{display:flex;align-items:center;gap:6px;font-weight:500;font-size:13.5px;color:var(--negro);}
+  .radio-group input{width:auto;}
+
+  .sig-box{border:1.5px dashed var(--gris-borde);border-radius:10px;padding:10px;background:#fbfcfb;}
+  canvas#sigPad{width:100%;height:150px;border-radius:8px;background:#fff;border:1px solid var(--gris-borde);touch-action:none;cursor:crosshair;display:block;}
+  .sig-actions{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+  .sig-actions span{font-size:12px;color:var(--gris-txt);}
+
+  .btn{
+    border:none;border-radius:8px;padding:11px 22px;font-weight:700;font-size:14px;cursor:pointer;
+    transition:all .15s ease;font-family:inherit;
+  }
+  .btn-primary{background:var(--verde);color:#fff;}
+  .btn-primary:hover{background:var(--verde-oscuro2);}
+  .btn-primary:disabled{background:#a9c9b6;cursor:not-allowed;}
+  .btn-ghost{background:transparent;color:var(--gris-txt);border:1.5px solid var(--gris-borde);}
+  .btn-ghost:hover{border-color:var(--verde);color:var(--verde-txt);}
+  .btn-sm{padding:6px 12px;font-size:12.5px;border-radius:6px;}
+  .btn-danger-ghost{background:transparent;color:var(--rojo);border:1.5px solid var(--rojo-bg);}
+  .btn-danger-ghost:hover{background:var(--rojo-bg);}
+  .btn-ok-ghost{background:transparent;color:var(--verde-txt);border:1.5px solid var(--verde-claro);}
+  .btn-ok-ghost:hover{background:var(--verde-claro);}
+
+  .checkbox-row{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--gris-txt);margin-top:6px;}
+  .checkbox-row input{width:auto;margin-top:3px;}
+
+  /* ===== Confirmacion ===== */
+  .confirm-box{text-align:center;padding:40px 20px;}
+  .confirm-box .check{
+    width:64px;height:64px;border-radius:50%;background:var(--verde-claro);color:var(--verde);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 18px;
+  }
+  .folio{
+    display:inline-block;margin-top:10px;background:var(--negro);color:#fff;padding:8px 18px;
+    border-radius:8px;font-family:monospace;font-size:15px;letter-spacing:1px;
+  }
+
+  /* ===== Admin ===== */
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
+  .stat-card{background:#fff;border:1px solid var(--gris-borde);border-radius:10px;padding:16px;box-shadow:var(--sombra);}
+  .stat-card .num{font-family:Georgia,serif;font-size:26px;font-weight:700;color:var(--verde-txt);}
+  .stat-card .lbl{font-size:12px;color:var(--gris-txt);font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+  .filters-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+  .filters-row select, .filters-row input{width:auto;min-width:150px;}
+  .filters-row input[type=text]{flex:1;min-width:200px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  thead th{
+    text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--gris-txt);
+    padding:9px 10px;border-bottom:2px solid var(--gris-borde);
+  }
+  tbody td{padding:11px 10px;border-bottom:1px solid var(--gris-borde);vertical-align:middle;}
+  tbody tr{cursor:pointer;}
+  tbody tr:hover{background:var(--verde-claro2);}
+  .empty-state{text-align:center;padding:50px 20px;color:var(--gris-txt);}
+  .empty-state svg{color:var(--gris-borde);margin-bottom:12px;}
+
+  /* ===== Modal ===== */
+  .overlay{
+    display:none;position:fixed;inset:0;background:rgba(20,25,22,.5);
+    align-items:center;justify-content:center;padding:20px;z-index:50;
+  }
+  .overlay.show{display:flex;}
+  .modal{background:#fff;border-radius:12px;max-width:640px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.2);}
+  .modal-head{
+    display:flex;justify-content:space-between;align-items:flex-start;padding:20px 22px;border-bottom:1px solid var(--gris-borde);
+    position:sticky;top:0;background:#fff;
+  }
+  .modal-body{padding:20px 22px;}
+  .modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--gris-txt);line-height:1;padding:2px 6px;}
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;margin-bottom:18px;}
+  .detail-item .k{font-size:11.5px;color:var(--gris-txt);text-transform:uppercase;letter-spacing:.3px;font-weight:700;margin-bottom:2px;}
+  .detail-item .v{font-size:14px;color:var(--negro);}
+  .sig-preview{border:1px solid var(--gris-borde);border-radius:8px;background:#fbfcfb;max-width:280px;margin-top:6px;}
+  .status-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid var(--gris-borde);}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--negro);color:#fff;padding:12px 20px;border-radius:8px;font-size:13.5px;font-weight:600;
+    opacity:0;transition:all .25s ease;z-index:100;box-shadow:0 6px 20px rgba(0,0,0,.25);pointer-events:none;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .footer-note{text-align:center;font-size:11.5px;color:var(--gris-txt);margin-top:30px;padding-top:16px;border-top:1px solid var(--gris-borde);}
+
+  /* ===== Formato imprimible (facsímil exacto del formato físico) ===== */
+  #printArea{display:none;}
+  .pf{font-family:Arial,Helvetica,sans-serif;color:#111;font-size:13.5px;max-width:800px;margin:0 auto;}
+
+  /* --- Header genérico --- */
+  .pf-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+  .pf-header img{height:56px;}
+  .pf-doccode{font-size:12px;font-weight:700;}
+  .pf-ruc{font-size:11px;font-weight:700;margin-top:4px;}
+  .pf-header-inline{display:flex;align-items:center;gap:16px;margin-bottom:16px;}
+  .pf-header-inline img{height:56px;}
+  .pf-header-inline .pf-doccode{font-size:12px;font-weight:700;}
+
+  /* --- Estilo "Vacaciones" (facsímil exacto) --- */
+  .pf-box{border:2px solid #111;}
+  .pf-title{text-align:center;font-size:26px;font-weight:700;margin:0;padding:14px 12px 2px;}
+  .pf-subtitle{text-align:center;font-size:13px;font-weight:700;margin-bottom:16px;padding:0 10px;}
+  .pf-section{background:#fff;color:#111;font-weight:700;font-size:17px;padding:9px 10px;text-align:center;border-top:1.6px solid #111;border-bottom:3px double #111;}
+  table.pf-table{width:100%;border-collapse:collapse;margin-bottom:0;}
+  table.pf-table td{border:1px solid #111;padding:10px 10px;font-size:13px;vertical-align:top;}
+  table.pf-table td.lbl{background:#bfbfbf;font-weight:700;width:200px;}
+  .pf-autorizaciones{min-height:230px;border:1px solid #111;border-top:none;}
+  .pf-firmas-box{display:flex;justify-content:space-between;margin-top:-14px;padding:0 4px 4px;gap:14px;}
+  .pf-firmas-box > div{background:#a6a6a6;font-weight:700;font-size:12px;text-align:center;padding:9px 10px;border:1px solid #111;}
+
+  /* --- Estilo "Adelanto / Gratificación / Préstamo" (ANEXO PER 003RRHH-2, facsímil exacto) --- */
+  .pf-title-bar{background:#fff;color:#111;text-align:center;font-weight:700;font-size:15px;padding:16px 16px;line-height:1.4;border-bottom:1.6px solid #111;text-transform:uppercase;}
+  .pf-parrafo{font-size:12.5px;margin:0;text-align:justify;padding:16px 16px 8px;line-height:1.5;}
+  .pf-campos{padding:8px 16px 18px;}
+  .pf-campos .fila{display:flex;align-items:baseline;gap:6px;margin-bottom:22px;font-size:13px;}
+  .pf-campos .fila b{white-space:nowrap;text-transform:uppercase;font-weight:700;}
+  .pf-campos .fila b::after{content:" :";}
+  .pf-campos .fila span{border-bottom:1px solid #333;flex:1;padding-bottom:2px;min-height:15px;}
+  .pf-caja-cols{display:flex;padding:0 16px 18px;gap:40px;}
+  .pf-caja-grid{flex:1;display:flex;flex-direction:column;gap:14px;}
+  .pf-caja{border:1px solid #333;padding:7px 10px;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .pf-cuotas{flex:1;display:flex;flex-direction:column;gap:14px;justify-content:flex-start;}
+  .pf-cuotas .pf-caja{justify-content:space-between;}
+  .pf-checkbox{width:24px;height:22px;border:1.5px solid #333;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;}
+  table.pf-mes-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;}
+  .pf-mes-wrap{padding:0 16px 18px;}
+  table.pf-mes-table td{padding:7px 6px;vertical-align:middle;}
+  table.pf-mes-table td.mes-side{font-weight:700;font-size:11px;text-align:center;text-transform:uppercase;border-right:1px solid #333;width:28px;letter-spacing:.3px;writing-mode:vertical-rl;transform:rotate(180deg);padding:8px 4px;}
+  table.pf-mes-table td.mes-lbl{white-space:nowrap;padding-right:10px;}
+  table.pf-mes-table td.mes-box{border:1px solid #333;width:56px;height:20px;text-align:center;font-size:11px;}
+  .pf-legal{border:1px solid #333;padding:14px 16px;font-size:11.5px;margin:0 16px 20px;text-align:justify;line-height:1.5;}
+
+  /* --- Firmas (líneas simples) --- */
+  .pf-firmas{display:flex;justify-content:space-between;gap:20px;text-align:center;font-size:11.5px;font-weight:700;padding:0 16px 22px;}
+  .pf-firmas > div{flex:1;display:flex;flex-direction:column;align-items:center;}
+  .pf-firma-slot{height:52px;width:100%;}
+  .pf-firma-line{border-top:1.4px solid #222;width:92%;margin-top:2px;padding-top:6px;text-transform:uppercase;}
+  .pf-footer{text-align:center;font-size:10px;color:#555;margin-top:16px;padding-top:5px;}
+
+  /* --- Estilo "Cambio de banco": simple, sin recuadro (facsímil exacto) --- */
+  .pf-plain-line{font-size:13px;margin:5px 0;}
+  .pf-line-fill{border-bottom:1px solid #222;display:inline-block;min-width:190px;text-align:center;}
+  .pf-title-plain{text-align:center;font-size:16px;font-weight:700;margin:26px 0 20px;text-transform:uppercase;}
+  .pf-bank-th{border:1px solid #111;padding:8px 10px;font-size:13px;font-weight:700;text-align:center;}
+
+  /* --- Estilo "Declaración Jurada - Préstamo por Vivienda" (facsímil exacto) --- */
+  .pf-dj{font-family:Georgia,"Times New Roman",serif;font-size:13px;line-height:1.5;}
+  .dj-title{text-align:center;font-size:14px;font-weight:700;line-height:1.5;margin-bottom:18px;}
+  .dj-parrafo{text-align:justify;margin:0 0 14px;}
+  .dj-list{margin:0 0 14px;padding-left:22px;}
+  .dj-list li{text-align:justify;margin-bottom:12px;padding-left:4px;}
+  .dj-firma-row{display:flex;justify-content:space-between;align-items:flex-end;margin:34px 0 46px;gap:30px;}
+  .dj-huella{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .dj-huella-box{width:110px;height:130px;border:1.4px solid #111;}
+  .dj-huella-label{font-size:13px;}
+  .dj-fecha-firma{text-align:center;min-width:260px;}
+  .dj-fecha{font-style:italic;font-weight:700;margin-bottom:44px;}
+  .dj-firma-slot{height:0;}
+  .dj-firma-line{border-top:1.4px solid #111;padding-top:6px;font-size:12.5px;}
+  .dj-footer{display:flex;justify-content:space-between;gap:20px;font-size:10px;color:var(--verde-txt,#0d6b34);border-top:1px solid #ccc;padding-top:10px;margin-top:10px;line-height:1.6;}
+  .dj-footer b{color:#0d6b34;}
+  .dj-footer div:last-child{color:#333;}
+  .dj-footer div:last-child b{color:#0d6b34;}
+
+  /* --- Anexo fotográfico (evidencias adjuntas) --- */
+  .pf-anexo{font-family:Arial,Helvetica,sans-serif;}
+  .anexo-title{font-size:16px;font-weight:700;margin-bottom:2px;}
+  .anexo-sub{font-size:11.5px;color:#555;margin-bottom:16px;}
+  .anexo-grid{display:flex;flex-wrap:wrap;gap:14px;}
+  .anexo-item{width:calc(50% - 7px);border:1px solid #ccc;border-radius:4px;overflow:hidden;page-break-inside:avoid;}
+  .anexo-item img{width:100%;min-height:160px;display:block;max-height:320px;object-fit:contain;background:#f5f5f5;}
+  .anexo-cap{font-size:10.5px;color:#555;padding:5px 8px;border-top:1px solid #eee;word-break:break-all;}
+
+  @media print{
+    body *{visibility:hidden;}
+    #printArea, #printArea *{visibility:visible;}
+    #printArea{display:block;position:absolute;top:0;left:0;width:100%;}
+    @page{margin:14mm;}
+  }
+
+  @media(max-width:640px){
+    .form-grid{grid-template-columns:1fr;}
+    .detail-grid{grid-template-columns:1fr;}
+    .topbar{padding:12px;}
+    .brand img{height:34px;}
+    .brand-text .title{font-size:14.5px;}
+    .tab-btn{padding:8px 12px;font-size:13px;}
+  }
+
+  /* ---- Base de colaboradores ---- */
+  .base-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap;}
+  .base-head h2{margin-bottom:4px;}
+  .base-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .base-aviso{margin-top:14px;padding:10px 12px;border-radius:8px;background:var(--ambar-bg);color:var(--ambar);font-size:13px;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between;}
+  .base-ayuda{font-size:12.5px;color:var(--gris-txt);margin-top:12px;line-height:1.5;}
+  .imp-modo{border:1px solid var(--gris-borde);border-radius:8px;padding:12px 12px 4px;margin-bottom:14px;}
+  .imp-modo label{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;margin-bottom:10px;cursor:pointer;}
+  .imp-modo small{color:var(--gris-txt);}
+  .imp-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:10px;margin-bottom:6px;}
+  .imp-stat{border:1px solid var(--gris-borde);border-radius:8px;padding:10px 12px;}
+  .imp-stat .num{font-size:22px;font-weight:700;}
+  .imp-stat .lbl{font-size:12px;color:var(--gris-txt);}
+  details.imp{margin-top:12px;}
+  details.imp summary{cursor:pointer;font-weight:600;font-size:13.5px;}
+  .imp-list{font-size:12.5px;border:1px solid var(--gris-borde);border-radius:8px;max-height:230px;overflow:auto;margin-top:8px;}
+  .imp-list > div{padding:7px 10px;border-bottom:1px solid var(--gris-borde);line-height:1.45;}
+  .imp-list > div:last-child{border-bottom:none;}
+  .imp-list .muted{color:var(--gris-txt);}
+  .imp-alert{margin:10px 0;padding:10px 12px;border-radius:8px;background:var(--ambar-bg);color:var(--ambar);font-size:13px;}
+  .imp-alert-rojo{background:var(--rojo-bg);color:var(--rojo);}
+  .admin-alerta{background:var(--rojo-bg);color:var(--rojo);border-color:var(--rojo-bg);font-size:13.5px;line-height:1.5;}
+  .buscando{color:var(--gris-txt);font-size:13px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <img src="data:image/webp;base64,UklGRoYNAABXRUJQVlA4WAoAAAAYAAAA0QEAfgAAVlA4TKYMAAAv0YEfEPdHpG1T/2zCfxzzIyAokSQVvjDW4I3//1dO4v97pRBJCAQDUbDSe4mdGo4S6WViV+p+lg/dZeyNxRFbUHSwxt577723LO2TtYLdmF2wZRM2xBgzeVzJzHm9z/ucnI9zyYj+T4CEz4LjH6m+4XJJK98KcFl6aVubbw9MJ/VMwmNppB47SPr73ukj6fpIEi5II0nuL0l29UwjyQdJeLWD6riitE3X3cm4P0exgjlpm0tI/WYvN3nXwpp0Tc4vLmhc1ytZl+XVQDxdMxnlx7deFtvwRhNtr0jXxDTuz0nX3O7FCemaJ7zoka65zYOtkq69wIPFaZsSczs7pW2yvje2QNK3fzP1kKRxsz82835eOkcG1pl4uYukdyfUq35fmyV/pI4sNp1r2QHFrrN9JwM+cPf7fUMkaddoNDrRqy7Frrt5NrzYdCdvRhbbOUy1Z7G3Awot61rsek8DGHfsytmF6+X+k7LfXL06ISPZZcCdXt2L69c9w3jEk67Yqori9a63Lp+QYc8TuH4mqEbj/nHf5d6Ddvs5w0Ty1mDDTndNHUNU22/PzrUks9ZdQ3ZAna34KcNn+24h5dzLvkoC7P6qERv6oSwJWfCv4+0YjvJQ3ZpYLNakqojFYvva9YyCwf7a70tSi2Sc8E2y1F79RbPaqwtisViT6s5YLNbHkw5rYrGYriKm3GnikFgs9qRqZyz5ky7ghiwblmvO0LWtUxWL7Zm1mqW+6v45rkQ632vV7ZqXvGpbp3LESl2xKKtMtF2oqpLkC13xYJYFD2qeDKZhaO/3U8f30IissekLTUN2CGOdBTWa2oxAWqaq8VMFBuR0e3qgPjyMtY7xrDfqYYH0gIre/jkRI3KlNcfpzgxjfODZfN3yQKrRLfRNj18MZTxjywbdU6GM0V7drHswiHqhv803T2BICqst2aqrzQxl13q1TbcjiOYZ+NIvkzEmR9nRJaFjeCj7zKMiDPYLoJsN0MMf2Z94ILdbMQWDK0MZXbwpM/E/AbTNxEn+WIgXhbU2XGriwXBW7M3VJu4MniJMXu+L7C89kdNteNvEznA2zZtNJr4OnjKgXvWxL+bhTU61d3s0Qb2K/qEs4kl+C9Sp2C9wrgYuV7UW+mGLR7LCu3HAg1+qFoWyYzw5Grhjp+rkwNkE7FerIeKDcXiV+6Nn5wIr71Td2S6tisfX+WumJ2uBvz6oqgia/Bb4Wp5VrffBnZ7JpZ49DxQvVH3bLhm36AhP3gAGLlN9GjRHA3fLmapN9uU3eHdAwqPMeqjP6qNivzDW3YucRvhRhqkoCpi1wGI5XNWSb91cvJOXPCoGXhSpUc0JYf8WL0cBT0jGT6qygHkdGCzZDRqmWPeYDfM9WgmsFrlPVRHC7vXkbOAMkSdV8WDp0Ai/ZIi8qLrEttwGGzrOjkRGePAQ4IgsVW0LYcd48gxwhEhUtSVYRgFPi8hq1Tu2TcEGr3dAc57IIBVFoev7HC8ya6ExW+RgVaIgUM4CzhaRcaqmjpat818/oFJE5CfVsaFruXg5DHhdRLLqNUwJlKeB0SKS06RhgmWb/LcQuLLNo6p4e7IaGOu79zI9WQasFRF5TlUeJBm18GuOiMibqtV2dfzdf7cCs9ucqvq/9mQD4PitZj/x9AFgcptzVe8FyTDgLWl7keplu0bhv+1AUZtiVaKg/cjaHgDV/cXbGkh0bjNK1ZwXIEuBy5KUqhqyrVruv72BbdI2s1bDtHYj+1r892ZP8bYXsFXaZjdqcALkfmBqkrxmDUdYtcF/xwG3JJFnVeXtwH3xeDx+41fY9lM8+cupdizJFI/nAtckkVdVsQD5HloLkkil6kyrXvBfHFiQ7EzVB+2Ae5vUlYtzxfObgBOS/V31anD0Av4pyctVT1v1uf+2AH2THa5qzgtFH57cQSz8DNgnmaNq7BAYc4HrU0xV1Wba9F/fdU7ADkme3aDhqFAE9bcf4lkR8LUk79ikYVRg3ASclKIgoWGERbn4bgrwSAp5URULvmm9evXqddAFu23bXpx8TTLgqV4eRYC7U8g7qnMD4zNg/xSyWbXSogP8dwmwKtVq1evBVyxJx7daViXJF7qgvsybq4DFqS5RPRsURcB3kjquesiivv57Czgk1ThVY057Ic/4j8QcTzYCg1NNUtVnBkQEuM9FRLXTomLf5TRBQ1aqnCYNo9uNywOA5lEe5LfAzxmp8ls0FAfEVcBSF91UDGg/xgIvi8s3Vee2G5Pj8Xgfv7E9x1wp8LS4rFStCoiNwDAX8rFqkT2DfHcucKGbi1TPtxte28JycxcBZ7u5UvVoMOS3wH8y3VyvusueXvbMi8Uu7GDiOWCim1JVfVao+iLD2OvAaDczVD8GQynwnLg9SfWtPXn2fAjNYjCzDlo6uclr1nBQqOJwUx0a4dccN11bNQwKhBhwp+NWx/7WyC5rfoYaEyOBrxzXX6ii4eoCU6OATx3X1aolgfAans+150NbCoG3TazE88fC1ROmzsLze4Mgu9G7CnsetKUEuNnEg979lBGqNpl62rvqIBiF99vsWW3L2cAKE//yjkGh6itDGbXe0SsAzgQejro/X0WRNRNteQo41EAfYHtU+ZVqaaj6j6FhwMdRZbVqvkWjI5FpZp4CRonyW9Vx1uQ127FHA9RlG1gAXCHKq1X3+eaISGSGD8ZGIlN9VWdoKRATZYXqVouqACMZv0BjB82dqrg18podM4BHxeCtwAzNDFWNb94EfFAFBNB9QKnmeNV2/w0FXhPtXFWVPcvteAiYa2IbtBZqChIaeoW/amjppClS0cN3S4GYaj9VosCaHr/b0LMZducb2Av4SNQbVQtD34FApag/Vp3gu/uAUpV8qWG6NfKoDeXA7WLwWOB6Xbnq1tA3F1iv26C6znfV0JKnq1CV21NiQc8GYISJOHCSborqi9BXAczWRVT/9NuBQKXoT1JV2iNvenc38LSY3Azsq8tr1tAj7H0KdNMVtmpaC302F1hvoIeqOc+e8Z5NAxIjTeQn4Csx+K7qpJDXHfhYDG7WMNNnFcAsA/Kxhon2yN0eHfALcJ2YnAzcaeIS1XUhZoYVEaDCxHrVep99ChSauE4Vs6hopyddPwK+6WLkEmCRCUf1UYjpa8V64BQTM1SV/uoOfCwmj1G9bpE4CQ8K/wH8dqgYfRMYaKJjk6a1MLzIV5pdRv4B7Gciv0XTku+rCFBhpLBV05hjkZxtbuhXAIvFaM6vsFOMvqFhdog5R0NvA51a4FsxWqnhaF+tB042IlUaxtgkVxvKWd0EsFrMjgEeNbNatT7E5NdonszSlQL3mLlcdYmIlDiO06Ba5Ci/1B3uOE4VMMdJPtbd1arrHGeoPXKxiaIza2h7phjs7TjOdcBNTsoCV+NUHzpOSaZirOM4Daqoo6zSZZQ4jqNb5Ci/NLG34zjlqi8dxzmkjUxMKPhg3oFu+jqOczOwwUnZ2VWpaqPjlGCrog61uxkq4E2LZO5uV8PHn3z52wna1kfEZBx1xFXObk3brgpsVXTFVlUU098mkTkJBcTd3InacZXXrLHapoKEv6TX827cPrqP2CcvhimZWOMXebtdkI0+E5nxru6VUjHs1bmhSjpf8J1PYiZWRe1cqfjfqPZUxcSovswykUPXbXPz0SUjxHhJVN3LXa+owQ6KU6N2rlJkr4rauVI1PGp6QSqRjKFzoy7HuimNqvd11y+qXyVhtduRKy648orzl03oKn/6/0///5n3Ho7j5BvIOGzJCWX5mjGRMcWDBxQfPm2CJufIU04sy08n3AqJAl3pJ5TK1h+OUmwmeeNodxlLdmzbs9PuHyemD3r+CptFvaiVd0U2siPXVUEixXHiOuteWCBSx3/3Shtc2ArrVf1/g9Mlazcc5WraDqD25fv+Ju4vgt86SyGwIl1w4mnATFU5MEwOBua6OkVyCzvL7DvE/QHN8LrIZODKP9rOjaVcqjhyajm0Fqoeh12Zch4wydVcEZFl2/MVlwJnicSAc90tjaU894+rOlJWuRsxSyqhStTl8L7IRmAvV0eIyN8To0VZCRwq8jow3l0VKev+uFoWTTnHXYbkt0Bc1/1TtsgMYKNoy4mL9lv4tYPk/QafZrqbE0257I8r81OAiE5yTr58znxgieZy/t1ZtRU+EJkBTJd0YTm0FhroJCJr4btcxWmwSNTnwR0it8GlkjbcCB+Lutu7fCBSCWXifkYrX2br9niZ2+TA3XV/lXThkLILY7GzSlQx2CF7JYiL+wPqYLEYzCi7asaahfmS5lxFbYmsbV2XoXgVajuaSJNmnftEZPm9Y0Q5q3rjm+fI/3sBRVhJRroAAABFeGlmAABJSSoACAAAAAYAEgEDAAEAAAABAAAAGgEFAAEAAABWAAAAGwEFAAEAAABeAAAAKAEDAAEAAAACAAAAEwIDAAEAAAABAAAAaYcEAAEAAABmAAAAAAAAAC8ZAQDoAwAALxkBAOgDAAAGAACQBwAEAAAAMDIxMAGRBwAEAAAAAQIDAACgBwAEAAAAMDEwMAGgAwABAAAA//8AAAKgBAABAAAA0gEAAAOgBAABAAAAfwAAAAAAAAA=" alt="La Calera">
+    <div class="brand-text">
+      <span class="eyebrow">Gerencia Central de Administración y Finanzas</span>
+      <span class="title">Portal de Trámites</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="app">
+
+  <!-- ============ VISTA COLABORADOR ============ -->
+  <div class="view active" id="view-colaborador">
+
+    <div class="card" id="card-buscar">
+      <h2>¿Quién eres?</h2>
+      <p class="subtitle">Ingresa tu N° de DNI (8 dígitos) para autocompletar tus datos.</p>
+      <div class="search-row">
+        <input type="text" id="buscarInput" inputmode="numeric" maxlength="8" placeholder="Escribe tu N° de DNI (8 dígitos)...">
+      </div>
+      <div class="search-results" id="searchResults"></div>
+    </div>
+
+    <div class="card" id="card-empleado" style="display:none;">
+      <div class="empleado-card">
+        <div class="empleado-info">
+          <div class="nombre" id="empNombre"></div>
+          <div class="cargo" id="empCargo"></div>
+          <div class="empleado-grid">
+            <div><b>DNI:</b> <span id="empDNI"></span></div>
+            <div><b>Código:</b> <span id="empCodigo"></span></div>
+            <div><b>Área:</b> <span id="empArea"></span></div>
+            <div><b>Fecha ingreso:</b> <span id="empIngreso"></span></div>
+          </div>
+        </div>
+        <button class="link-btn" id="btnCambiarEmpleado">No soy yo, cambiar</button>
+      </div>
+    </div>
+
+    <div class="card" id="card-tramite" style="display:none;">
+      <h2>¿Qué trámite deseas realizar?</h2>
+      <p class="subtitle">Selecciona una opción para continuar.</p>
+      <div class="tramite-grid" id="tramiteGrid"></div>
+    </div>
+
+    <div class="card" id="card-form" style="display:none;">
+      <h2 id="formTitle"></h2>
+      <p class="subtitle" id="formSubtitle"></p>
+      <form id="dynForm"></form>
+    </div>
+
+    <div class="card" id="card-confirm" style="display:none;">
+      <div class="confirm-box">
+        <div class="check">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <h2>Solicitud enviada</h2>
+        <p class="subtitle">Tu trámite fue registrado y será revisado por Gestión Humana.</p>
+        <div class="folio" id="folioText"></div>
+        <div style="margin-top:22px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+          <button class="btn btn-primary" id="btnDescargarPDF">Descargar / Imprimir para firmar</button>
+          <button class="btn btn-ghost" id="btnNuevaSolicitud">Registrar otra solicitud</button>
+        </div>
+        <p class="subtitle" style="margin-top:14px;">Se abrirá la vista de impresión: ahí puedes imprimir en papel o elegir "Guardar como PDF".</p>
+      </div>
+    </div>
+
+  </div>
+
+
+
+</div>
+
+<div class="overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="pill" id="modalPill"></div>
+        <h2 style="margin-top:8px;" id="modalTitle"></h2>
+      </div>
+      <button class="modal-close" id="modalClose">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div id="printArea"></div>
+
+<script>
+/*EMPLEADOS_INICIO*/
+const MODO_PUBLICO = true;
+const EMPLEADOS_CIFRADO = {"salt":"ye9be9IpIwrT6Qj3Km1OEA==","iter":150000,"items":[{"i":"2893324e9c4e56955d7c19fde1ca9035","v":"GUMWbDn49zx0b5ek","c":"dRFLDOWUl2TRg9M1OZz18aGRvDr74Hg7AeOv9aiW/0kjD4JxS75DOkS0GSeYC/3ow8A3NKyJZyMtQ73o7mrG3pl53ozMeiDKF2PD5v8N3ETLVwF4tzizxCpb8smzkSBLevyoN+aWmeyhtiHulovipXvHp78NaXzEoEDRkicybwwq3j5CaN05nGtHw1nunZQhYa6DzEJ9z8hFugavstnPiOq+AZMIyy2AAYkAluiqPNjTEhhkntzhTzVhyHC+mmuYZECDMFHgAnn3nP7esRQfuHupV81mpAPckOGWKEcXz/29ysg="},{"i":"d6b23bd10809f45a9e55f692cadfadf5","v":"jGAgs7fVINHhD0eB","c":"aezzNFl6uJWMvhKO0pdg28GX5AmMbQE7Ze+TB8n9+aJmO2tbaw5ktXYnBaiFBEEK7f84EYA9+xbkgaBtnFGZo66HN0v7vCdXQ75X0cRyoChN7t2cDRmH0RskNBnpOxrhxuuGh7U9Gtzl9VxeRXYP+3fKWCgKhNXG65DBtKq9N4UJHvRIOW9vBy6g3MDg5eUb2xzDURDUONn03zDj+lk9ELAJvUJwrgzmglbfIQLF7YzAPx3QQwWBY5XOrS+G4S/rbnXnun/GpF16RnXRnso7RiCcXIiUBA=="},{"i":"9afb7a710f5957e48367ca6ac9e996ee","v":"VdTWxTXqgkXqIC+2","c":"kgg4FEJ9acFR4WeS0X77YjbakNo34QTG6uc3sDIii6kAQShAA1M/niRCENBifTbjbn87PrxA7+7pv597r0af3yzQR7LBEn3PoomsiOw+pWsBPA1jApQ1EUjm2h7iCDpp49Kae8SFqDoKANCFyFVoeAVYz6Qitu81xXfDt6DBapUgL6KeRYJ9Sd7KXA+KJutXQNiJNnuzFK7Zq+/L4+5o2mmR8iL9J/DbROYrwpt8XzM="},{"i":"f365ca816406bbfdba7aab33b7c0543e","v":"mcZROwGVIruBaQs3","c":"GQtjwVds1yIosBaiEOFssIOku+dbSoMAyl+XjQQ+ZVw8TwIvo01wmuCLVFAf0YELCGIoaD404WGLOJgiED7cRQBj4GY7llpCgdX7xDdB1s1rYaqtEhL9RtVFj7c0Cck033oqXEOc2QY2YDxxhM7QOFDaejZPHE7OYdjEecdMA8ulAFmls75Lmmb3METWQG8AOv+TWAnFzEm679Kb9xKN+HT5D6ogp7O5z5UGyVDeg9BVxVRPGV0iQdSXWXPZ+phXI3SxP7f3KotwtqLH21ZT+BA="},{"i":"b58e22f787ec8c45f9c124b37e1a3185","v":"bpTCIAJ3+ABVxJer","c":"JQ63x81KjgX/IpuEAif4p/Xz+sKgarpgnxdhtOgDaBAT9ufgyS8mW0e/eTNWWWWG+JUSvFhJlCFKygyuZcCETWfIyjhc6gCo9zzg5QQFMeDu73xU79hc8A691hAILuHlN1HAuUX6NeROp5irnHbpsA3uXUvyhow0N7aWggaqv6H8uuniXMDjM80RI4XcVq786ZKexDaoBJ16kj/b78P1DzwHdsv/Wq8FA7tFF1PdeSjEh9tUOsajpeWLgd7SiHYGa0H2UFvFoh0hvy8xRee++KMiiujnAWdSXrAZr2M="},{"i":"6e63ef57aacfa8930ce7c88818b3a0d5","v":"GOjAliV6w1OrZmRE","c":"PC9T2p7mZk+kCI6o8n6NbnbRMR7FOmTxJ6o12b2pS3q8hHG4uR8U9uYuXwtcU9JhLtERQ0bt6/B9wB0aia5dzAZL2CsmKXoFR1TE6dV5zsYJCEt4oLR/NkFsxHhNtP7arJ1LmmJ4LFlwV4If/lJi7kvbTIsFeJe1SgvF/TsIxs5vCklXMYwlavuQlYrmK4zVQQYBlea9WSCA7DFdKhqMoRntGaqNuBl8euOGZNpv++jmAfWhZZftPlIonUwn8lB2YJa1mmJ2u7fvCd8L/V+olPWFz8FZuiA4xA1ixA=="},{"i":"0487366654b417f27a5993f3329666e7","v":"+Kn2u6C86Y7+hreS","c":"J39Zuxn5APghDtenMEoa0nqW7DJqebF7b42Owvnmu8T/0489tj3/y639rxvt+fwRb4e95C5RNhxKd95ZOO+6oeGcbTWrAKNgdRMcCBWE92BN7Dnw8TXmkhg0D1zcoa/ea7utU4QKmbY70iKLw0SaLKiU9Tj8t/3wq7VvHoQOqSEHhyof6bcVRUZjUt3PeKLZBCIqC5uc+mpsdmCvzBokSnwSm7rB7CAbfCpcGQVrfWhlA/YVOcMC/lgpOF4GcrG5xD8="},{"i":"3e20db6ec90a2f741c699721934862ab","v":"BR3SCYh2w2/yxoJx","c":"KyrfLpINDWBUDxLFY3lWzfgyVmkLcE3nXt2oxxjgpvMrBpFW8P4/mTNIDGijL4PKbXpe3UQf5Mr+maONN3/eWxsZyNGUBRts3czsGHpY/HLtQNuKRSpKeGNPOmxrFx8ajDMjLTt3xTzp0vuVvXpU6JmKaqPDMHDhhGsDPNwA0MM+zCi/VOShzX4RROPOCvAzEIQHptT/AXTDIXBxc1+ijWRafbZUSv54zHJSGklj1T13vxWa9V8BSVgSxcZu37RjFYs8nfXOG1w3Q2x4JtY4SbHKnaOVWg=="},{"i":"ce52c7d88dd3c562a9f846426743ef8f","v":"cS5XDafx9trNP50A","c":"KIk7OCuMxhlZR28AEQfFhdvxDUpBUpOyiJ6mkjltjVmg5Zq4dSeb+Y5fqkoCqRFxvvJb4IbF57MTyhWJBro63gb9Vis6gjBjbwTFYl5z3JSpzIp6MAaeJQ53g35ufjfUqFtIYQV3wOFmCAHMZ8BZZ40mE60rkL77mPqY8FdW+8srd0VY8FR/txaG7JdDic6NF+uZRdHRbjQEei7KeyFaJ05e92VbHxdMSiPBtS2D/INRkZTY4fHm3LSg+0atRWSM4kCeO2ET5hQcUA3as/5caGy7C9xOcea6gCCvxmA="},{"i":"e4d6b2fa2e9f377c2fb298b809fc1552","v":"HAs/+ZIq4v+oXh0E","c":"tZU8ucFhm1UfAowumnO8fh/7RaLNP8kyYO6rXwe87JHWFeEDhJza0YRGK9e35koXsoGLaUzt3eWfld0tLURYgsULx4X0A5DchyMidm8ZPoaILNXBwSxcP6BbmMQKKkOopkYbnMBqU59Dfpr/EEeWJIWMlI5bEPLkQex9Pqil2Nrow5rcnQeChFF3uqEGOLhWw46zVJlOjJU8PfrRC41HwiMpJsERE4R60oNd0Ja/kiZwpLT1XZ3eIKcy"},{"i":"b5bc47ed9bdab1283f1c659039ecc374","v":"UyP/R+1VUpy4Vf/5","c":"ez//cjmN/8rhp47SVL5SNt4+ygfJ69ORWB/cqKC48rhtJ4ijzX/pi+ymZZXYY+tUOAGDq2F2ShUhWkjN0+Es2J4eg6LFMxDfQfW0VmGuCJmXDUIBob2LnP9j7tH6Yixi1gE2zpVGxOvsqeGERaZoii/t41cQIbTSVHDsuj/PG70odpf2HL3RD4fTo9gircThu3f+EiTvRStw58WwFTrM1741MNXbHgUBJrokUZsa08ULNf/mjmUpbqSEYBDkUgwP1U+i0SzSqpnRJifYzj3YWSo="},{"i":"c6f1f759271c4a85091cbae9c4724657","v":"+xbO5ICZ3uUxp8pU","c":"ZApCGfQdNiOhdnCfl4nWIE5PY9xlElQB2onKTHeMHJuFegC+waOWywQ8YtikrYNbvPlpIHvJJUjpqSW0Graa+BInThGWGX+1YNfDqwZRHgWhGryaZDYDAfXKVICsxp61Hii9tFvALT4ssW+C9NdGhuPutfPezDlxMbUNjKZrEKMQ/X6SE3DkHfJxpXt5Q/NadLc18bQeosAhzPiyw86VRCb5vLu+c83ybvmNr+JsITyhO7p6dDBiZlXYQ7T1s1pW"},{"i":"99e53e5b6e1ce97fe3b428b191773d03","v":"GcFKtFUnygBNkTrC","c":"Vixw7UvJR5+z1Mkdf+T62AutkG9m+RM6efQRWH/BKDb5WKVMdrrtksBh4EYTe9RF2ZQ4InmFEN6ST5rTRpx4ktdT/2qY5PQJFn1KGAC2z/GiJUuTf6nLU4i5CUiXKBL5h/RX6xryOrYOeW3nJrA6o2wAlQd51RId+XgPdKRJNFFi/umL5ko0RPytUX5Br97FCiQOnRfFNirahI/INfMqjNRDnca/Ig1KDeG9AOq11KIB98vZ/pjujYV841vtoGih6/13kJGkVh0HjZ4JPzL61XySCdnymfRirQ=="},{"i":"759de179593a9959f20244e3fa74dc20","v":"e97D85SkaPG01QOL","c":"rabB9ISI+nGOTOksem4Fu0whDTABNzfUo2QkzMTGUEo0UZDSnopJwHphBNFexQOl+cdwTI6x2AjTazWbcpBAdSfWHnu0cY5BY+UwQr+zMO4pk8WW74gn76rTLQJp6YSkVz6f/E+zgmJdUJ9kWqbCUww3qkbQq/YKQa+3QYtoZCk+sVvQwPLboxEux5RMn3Zd9lIT1mj/X0wlkZl3cfrt2XyUG+JSfGN91puWiWKVEGCVyKjtuGChNCZ6LlOXEu3Ulr6hmpo9+fWbnK5B0GM="},{"i":"6627885e80143223e38db0ca99c8cff0","v":"cqtNxkO9S0yHuDOw","c":"T14q5j7Dz+K1S9DaWFDZVTJnUcF2hp8IkKZkW3y903tLkrW5Ed3c5Ct05dtmlvaIYLthxDgKGVZP3MPqzJwoaLg/TN4zSXtH7TeFKwp58h808ne+egbAaBQIjTx+IEae5myqN//+Y8ZafFCoxZginb5S2754EUWbgjX373hJu+nhVld2vq0bZbkLLG/YmcBh6/20r99YPvQG7WC3bchzNpxGhSBB8fxX7z+CosLV1LDLCVH3UDPeCbjc"},{"i":"8c3b9df26d99dc88c78415784406743c","v":"bCrE7XUJ0BYYcllc","c":"bRQGq4cp/+lauuGXQ8eeibJRZBjSM6TCy4naCoQqCDkwuJ+F4N60eF65+zAPzFxQPWNX9V3bhcjqh9tRLF1/nV78uBK8JDLPai4m2KPg0hDFoyJ2H89+UowC1TXVh9SO9v6Mj+G1XmpSk12k/YPG+AJaIGzeVuO73wmC5IUoadA/pI07wqcbOmFKW7NhL/SkSBrOmGSzKIe1geOBrApDrz7Ogh6AkNcHSnvOzqbT9e4w7R3G+BMQ9IJR0wSUU+sxZiA="},{"i":"e17389993a44f2df812bb9a1f748350e","v":"5q7ruS+U5z41DBq/","c":"lQZHFfhfOwcTF2gW7z9t/F3ONLmDvhiXTcl3OphqRXtcjqcZx5c8n9WB2qFplJRgdnJLD2KaE18N5f2+IXZuNueUa9x10ad27vlmVU43wbyHocQS3b25kWKaUd424HjW2hvpFS9BNX4Ds+wGghfmWGY7wQECivg6s6PAeLv8ooFthbhjZ52SCfvs9NgmXNvRiqmifd7H2q8kkmuRcWZRog5qbInGuAjg1icUCdv5sIQEB0pu9YZcYaKpl3WbCw=="},{"i":"cd8257b9dc946713cb7a97eb0be7025d","v":"amAOyBQDxxlESqrk","c":"M5CTucd48ouawhZz0ipqs/l0ZlR0PptgCybyh2JOdPnH8ANCK1PtRNGDpReVHgZl0dK9tdUA7D4UdYr0TcBzEHgaHSZaaUY9P35OPN6HklVpERFU4Jr9ae0Uwe3HQLGoGy+f/crzDxRwCIn54Dl32FqcSy5kdGyjYoW1dWfnmeOqIQgBjpZk0fhoYOnERYbKrkCzWDuFwhLt0m7ee5qy9eHiJTKLP9guayN0OW+JW3+oAFkLam87FIE5UEVO46KeYLUQU4XcqtM="},{"i":"0d038eacb151644eb772f648b74da44d","v":"/j4XH3IAf0ynLOMx","c":"0smWPdgFf8j27QuAP03FTxt5SA0io8D0w3njGfD6a5moC46vZ3AvBoxJX7I8CTcVbdvIzVC73FslNDU8Omj79HN33ugvpx9aW9hf/VBul20u31ueieE+XvNpIxxEgsuctn9G165PFbqeBVrJE7FjlfWgIMhOJ2VVllNiTmw9yZmemb35YGNt0jFcOhfhjjP+wAAxouEt2y30QKfb3yUCuNMjS4uaqQ/LnDuwRdV+lmvViGx25031NE7Iro9ThgtI0z3lj5icE+9HzbLkB0IsTEcTw6vZMWrdWqYUTg03z+HeECQIHduAlXraa/n/03Z/gCY0"},{"i":"e80d9c899ef46f159b74fe06dff06aa2","v":"S3ldjhIp9lVMdPTa","c":"rZjMfxIFsVqVToQOTfZ3AqElQl7pMusKv03FdqlnYHFtjat2ZdPtuNSMqbF5MLN690j1w52UqpiKgQ7RNSDjaKsjaOTJSsnicAgm+X9OSmvq1S08K8Et7Dat5MwzAwV+tFp723ieGTlnsmPk4Il9SuVJawnR4iBnhDmfRhGFi+5dMcq6m8EUOMeAu+d5Fb/zQwejrxkHlUTgctekTozu4Cmfwczx0kR6Rem/jitWTNxFJGVvVQxiETBbuRlk/EF0dd8rADM="},{"i":"9fb9ee00c2178b52d1331b38a5c28422","v":"usEfiJ9rdRH+pvDH","c":"4kK4QjRT+fi7Ap5vByhJcNtWeQLpFzPkgRfX//BWtcNJ0c/V/Qu2ouzgE8niiB9i7cbN73AfQip+leFWc2TixFsBGpMEPzMNSpSejB4ERT6JB0SntwIGidImq1HqtG2XvYGf9I8miZnyAmGBRi4veRoTwu8DWDvo2LUbRJfzWGy1CVMwnRqBwPnL7qvJwGpu/0S8b2lO+lzPYajstJKKZksd0LJIcgheArwhFW1gmByiKYKbPXLFrwmPHogwvs5wBNEERg=="},{"i":"90477df1a65ac7327f4d393b37a24d86","v":"mq3yTIWBC9hfgQjy","c":"XssQo25k1IE8p+5xZ4CO2Qj2wJk4DYIQiNq7kYUN9b0FyP2So5NrNQ/YkuK9l5lX8InbHioygRf5tYtmw8aJ2a4j9krvYC2EmHtrcJHZAD9bY1KJas9QeVLwCIfgYroyq1DCvMYsciZeSzuKUCwTyw5JRC2o1SkchKbv7qhKq6xHnrZdmtGD6kjmS8sQDqMd5il3wIVuUe90yRa/62VA2a0ZqpvQ5ly7YlhFCY+hxxVsA6cYCA4jgZUaEEc8x7DjBi0IUEldp6c="},{"i":"8ba868e2d5cb64e6737e1dd80ca2ac72","v":"F8kEEHeat2cpJr+4","c":"low6kIePJwVbVaOHMf4K//Ri1YOZvpcqoAMdOjvP6Ag4zRo9WEARSF5MZuFAtVNJSf4SU3xwRp4D5qiXfl2H/LFkDtUyVSTVkkPwddEk/GCZ0R0f3u3BEKJ2uqv6mhpSRv0Y2yebUH4BSB6LWKsVczDRTQH9A/Ib8Qsu9EuhXMO1xl6Ekdk4Cx8j4UlYK7JraBgTrxn/mE7jHdfPbbJtwfYA3aCtpQNm6Ew+t23fl6C0tmA3JEf61A4WJYf5Nl2b/UU1XJUMENpZMZ8="},{"i":"93c9e4c3889d9d089d54c9f9ca8844f0","v":"04NmikzNKsC3Zcuj","c":"PnZuDlBiJrJPY+LRDf6embxxwmaxP4SJAju5kWZ6gfy3n+8BoDIsZGcD5Nv/3Nho9rZNtVuw/zGhBFz1Pd2d7D2BOnPo+nSSJMqJIrIHBL/GI30N1L+oNKqeudaheJ9kFyh+V8cWdLXvjpbbXXAPmwY86BgEMLw+bPoXZZWdCMMZe6kpKrskcEC9GHg+i/2F0np0WwutRoSyd4Cs+LZhZ/ZTXvMLCm7l4lgjooVI1ZOcbixz3QAiBYu9UhXRPbIK6ztskoOThutjbOekEbGEKQZ84A9GcSElp/b7hvBLCao="},{"i":"1a80fbbfd69cd4ff439a3bd4a5531284","v":"kRoBxIHaGs3HjNl9","c":"if8FVQbWQPGWTMkrBH6PjRyXPcUAAP5y9ZLWQiLBiZNTDFURUNqZIHQOX6ORh9G4A8lD+m4pJ0QbB1Q/M/Ubn102zslrbS4WwEmVORMykmhu3RhT+Fc7wgNyZOMqIAx4esczkOrRyUa9JihkrrLyi6vE7JxOX3lx32ibJMFhXgHP7y3mdmtmJK7PPum+trbT6H2LFcBubxv9TjUnkbjtmfxvxf9EaBs9npOOkpd2nEb/pVYssDBFkIU9Ny+WKd/LHw/nv7zIFvFQu4flSeNtanMq"},{"i":"ff5ac22676ecf10764baca07bdf59ad1","v":"W0OsGoXP7Gwwppxe","c":"BEjCMpRU50dtrjQ6YHgxiVU2De8rS/tUpvQ05sqPSy+13VeFqt7vONh8HwwtwINcVXVU9GeZ8qlWIgVo3DW6anDxsr9kxAsYXOukovMpsntX3RbB69r9h0UqdcxJS8dAMwTVkLRH8LJk7rbXHIhCJJ9MQA2KCYGj9FvTQW2xUXYu1lPqLQ2N86JNoK4gv78T89CB8efpm/qEkHZ66yUpLqEPI9Hp/P9RMHFurBuXl9lW6O3GlG6T5g/JmlhltzdwoDm/V/MfRnZABhpgEfXEwQ/cMKFRfoDDGcxzLOL+Jw=="},{"i":"24e2100bdd98ee5194b43d6cf731819e","v":"Pn3QXLUGOSD7prky","c":"uBiZ2VCQHBCnWB6nzHqNgzT2fSeUNAk9pkwH06zxa2dtkvksUw8glEDLU0IsVYNIGpSARzGFZmXrCd3sUeksxi8rrU5gOBsG5hSonFXpDZBQ9c2EI4GB41nFaOOTsRfWm7AkEKJWwHT7I2Cwv7VcCBsQNvlFf5MjpKxN45X0ZMaj49CiI5IC2za33bce6amzqB77yzRD6aXL6yAxPwsHnYaAcysQ8URFM5CTrhkMsiflt7m4O4kk7ewzW/cv"},{"i":"4ec7ad19331ddfaba3542d0313404082","v":"e9v/xQlDu8k2WbYG","c":"yusGeqYf1TeQp51latl2zCzJd716BAzjCQfWzTn4Y04LICEkcghQ6PybAyB5A7L8lzkTqkflKKlxvOpLGijOUCgAJmLC5TxU0Sdf3qWN7Cz2YGMxhMexFTGeJbi5Ns88ALacHA1Y4rFHzM9MXAOyl2wdEca1fuZC02QXOF/QhLPyOhC/Emij8c4t9ztVZoXcjLZV6odJBcva64kQFz+1leKh18OdktZiwDRLgDYu+m0PTrTU07DQgu8aBekCEs8uw90HhlZLkRHT3A=="},{"i":"bbd575e01cf94eb7ff8408bf8945000b","v":"SFdl4cYIafRpdbtr","c":"+QcVFsP0XF33HYQnn/RnKve3FaexztFiYd+TDWvQ69bKBTRNaIfykoGqaUq2n0dhbToofEbUysh/URvntKtC4yb53wt1bxEdy8kFPlcaCyVH4S8+5ZNRYrGeeeYp+XshYAKthaFNVXE3W1/D2pjSR5JitYV4O6fpW3qgGPYwlF7XdEOH2FR6d0j4JrH6/7afql5/7Ow3DO2bTDol2TBJu3W2KGWm7aJGMe48/YBKTyZC7zoH1AJiw37DADAFoEcmSK1afyHBY7NmCgohCMOD+3ARj0yC6fk="},{"i":"f13a38a1de5671d7b80d66593ec0f3b8","v":"PFiyjEUcpbrKqkm4","c":"2pTgl0JAC1vbXUVpkwKhbrn3sgoMAJqS1H13uCwP+f7UetqJLx9N0xYiMaRA9akxFzgbFWF9tTa1fLlrJgtj8JH++dKG4bVScePvfwnwv6q9hPGHpEaPZFiSM3lgOoQZLOFO98g5/npZ/Hi7P4kAbYndlk14XOeEVnlPd+d6P3kFTnqRmuLm3EX3n1BIVUnFCYGOZtNOva6y4CPw4fVPtMllQj7lcbzxghllfHBkcmQpt/QbQhjj1PjcakZkOafLcx6smexuh4ISfkiQxpxsqTuiM3y72pDSubCTSM2MKQ=="},{"i":"dea6d513f3f33df61e53207b80dcbf56","v":"YNW8K00NBiqeg6B1","c":"15tZrjFKbOtCronTXkKkzBEcVkiXr5idl1lTUqHJdV9PUa8EKGG2d/+wpcHqVJH7pEZ4pftfROv3k5VkUAPRO32LmlhEDkcwwDJv54qFFZx1BCqtgMlOTJrcc4rYy9SmtAWvSIm32LhKtSvdVjeZ135qBCYj4vPhxs0FyTZvna7pE3jDAoORete9BPGTxu2AspX7HU8rHsKgaL/bmcPGFe4xePiviLgl8EBzvQY4Vhs4auw/7nNGcTsH7nl9m48JBGraiLSKveo6"},{"i":"d32ff20be6e78c3419fc0a7a71ad54b7","v":"2BSoxz4Dfq16SNEx","c":"kf5uwQpoArF7LMsu4wWwP9aPf74Krry/RKprqDpZ7nHbTtbGMtwnxrj+xrTzePszZNrjhEc3iICUFCZnxD+puaS9hZ1eQKRDJgIvC7F5WaWK2RVKP0vIQJdL2gz3uI+/G4ebw9nSnDVzQzZMcl6C4ElrB9gDjyDkYcEyPZNnqTo1OrcjzaYi8ONUcCZWHh2bLwTqscZ+nedlPdLPwnTA0MWRWNH6y0XpO7Yk98Ofb/5ud3Es60XypfiCDBS1oSTGcm3W3VU912Q1D5s7j7z3CNrXnDtM8xKTVFACjSnktN9Z"},{"i":"bdb371ffda4a0a59fed0511dbd06f6e0","v":"J5pLZ+ZtlBjrIYXZ","c":"m3Mpu/HmfEonZMBSZDDLmwrdnSyBzaH7POIAqnrlRxpXtGD5RiDCMKXEU2CuYd3j5VMX6KZd2bnCgy9N0Ddbhk7mBQTOiBNbMFesFOSsUhLZWzhj0NELgg/p09UG3FLC7r5R2ijtnxn2qbaAxvfInTX2DLVhTd8CILiRmDB9i5LwwX8GQyXSU3CopHknzOGLymBVJ6xM1meTWD/BtrsBkdFkHXAxTwXuUcGzoAJ/xeezPLhegdz8XxLjxdeWNg4xbZzh9N9JZkAoBgKGGaKvwAqGWWd/hL2H5XHnotbIWK5LF5I="},{"i":"93ec64b03ca008eb2ddf86f4ee71a2da","v":"A/AqapqSZu8nwB1P","c":"V1nyS/Yiv7hyjbUR5ExP+Dgue3zVOcZDRhQkMmRVzEBM1auY7Ysyl/XqL+EBcygH+MPw9b24TQUcEOkFaAbZwV622JloHLKvR9+9CzE3THE3DJLSC5DZH42rXUEvQrnI5rUG5GR2Dvi86bUDeMLaZIgyUdtfurXZnUvJBZo2fvi74jd1gkPD2AqSDSD0THhwxgK/LEhdyQe1V7ywBjL8JuDrcJpuUB6cY/V9lk9TLLk2N2SVpm0Gc3/iVeav3YOnWKRh1vDp3T1H1oOfqDGLA2T0U6g="},{"i":"9f215ddd5f9bf372558f22357ff1adb9","v":"HWiMvwZLRb+CVmOR","c":"qXWYihFXNzolsDc+Ux3hbpwMKM1Mor7NPIuUYks1fGTdf7wrQKKYSyeshjhfERGkd0kJdLlYJT9XGhpc4btIsjkdYKcTq1wgxwSmwj2SlswOMaLyMxDCsT/kBIsbC+aVYioZR3P8JzSRnpIRFKU807dnDMKJPqSgggMuNHjkMiDHZxryLXARprLFemdDVsMWzV7I00K71IICpimMUpAIjzx4ulEZ4plAaUjjRoXD7yq/4kW0eAw1eo5Zrm2tXE+LS7ciyz1OAe8cCO7tUjkj2OQJVnrck9eqlQuCvw=="},{"i":"028ab84dc6ee2e739582830daccb87f1","v":"MAJXnhWBqPAPKbk/","c":"CC42p8iMR88BbrImS17mgYwet+LfOCkRxvhq2ZsCB5oHIRfQ9gMISyKgujQrgzRg0XZ0zoxxsuRLbb6FLFQkVbfByeMUFzcFFMI6uAnhGOD7VEf7xPObsdclR1IbLJrYR95NR36PHOFqoSRN3lSVQeUUwNRUXIFZSpKi/HnVIcTCmerv1Pi1SUdV6uLWJxPOTDxvaCsVHlUmr7w+M12Dw4YvZ94ZNVwM81mchxPK4GjEE4t4GeTRdEKbpQ/Sf/mRN/QRBiBm0LLNpvt8+mvTmoA="},{"i":"0f1449c69574a9df4ab0c3f1bb1ce350","v":"jnR1FidUtUE2/8ym","c":"li6Meff256WirXTrrm9LldPZMmbSfz1yf6HD0PSjyQ0oC5wtZJgJK5qOWTXkDyzTbLnsa8mc342FHv8ArJ7RtoiFsvczWoAG10+6kuL5C+ZEGrb6addopw1uQhtPr/1PEBP1U0UMxOmUSIlLcnQPw0V+xm7gV6G5QIOc/25pgJ24ne/dSykgEM6KcWVF/wUVdKuyTVQbxsn33zK1dzaN7VZEVIwqmbR11BCKIDl8A94s/OGK26WWmMUANjOGb8CRgvhs"},{"i":"af1a7a506c273aad188322bb1048cef7","v":"QB5wRWSVQFNh1HEb","c":"W5rPfgUnsNn46EkuzrIZEa6A/52ATol8RUuZqbHNfPtXULQ9LINSe2dK1vljq2W9iCNUbXdNm2xAuTyVJhuRJ+uQCfd6JD2rQr8hdiAQIO8SLNTiQgJWyHibcQ4fcQYjxVghKnrPTwZqgoMvkH7QvuTuluXht/QEnelX8jmrLSBSJHktm0kUAjZWZhTq1r5KkIIdq+R6T9erSBMfILBOY/R7JYA5cyAwCBt9PWg/L6hQq3c57waoKQIz5iMvwbJbaTmbGYypcYhrekQM8M09zLkCQKtbIlw9HDFCfea0A+HlJI8="},{"i":"8840aa4e874df1f503c00f41dd6b6a22","v":"h2Hc4VJ+mEfFDYNe","c":"wlLAKboem3zZzMNNGOV+0vjGq+B0tgxfisSlc+sUF29fMAD+9ODzlhrVAhTmAXMEksiJD/Wo+D+uELAy0b5vhlLLS0VmygzsYrRBCTEvKEPpQApV4pJGZd+qHMo6dT13/lToiiUWJ+cmhznpEqBnIF4k/IdG+AscL95T90Y9hFY+/e+hG6GykRakL1Z3SJOPSFd9+xY8RZiyY1wGgsYtD/JJgNiEWxG4vEGdYvyvR+KieckQHlIqVg2DpqOeqtqTUNCS1w+H5stfMA/genTlFi5i/vq1ytk="},{"i":"1883fc15004c6fe43380735146bddbdf","v":"vFg2vSrYgW/ITpqf","c":"A9dbEOHQsNqjhbojTZrx8lwJN7SDFF/peFAfPo2gBsi4M8im/QI3DyvDZBAN21Gjwj5xE83VCTyv03E4Ugdzdtj4rlq23k9HT4CvwCGy8SJ/vg0d/OHQJHqgu1sAz8Xj7GBrs3SUjc8eTg/aDZAEcKtzQXNeDJsG1ng7NkSjjx5LmoFRUavtikjT79xW8ced5PoVRZBIuRzFJ5o4YiS1Z8xkJae2rQaV43TXRT0L6I41qS20dKe+WVu77VSB7brl7MbpVA=="},{"i":"7fbfb2d29f44ac0b266fa8cdeca0c6b2","v":"mz52EeuMTNOhdXFc","c":"Ajc+VRVYoDoaQjwr6iykM/BgavY9OvZwWKggCHVJUQ5u99gLNkaARXKpGvtLssinNqaC8IzZwdwo4aE9oFzIU4uxa7KQVDC/ZVxHpOhpGALzj8VhrWRRPWuyMu6cksp1Tc9gLrQAU4wfR6qA2tHxHQoqQlJ4sRBy861uUNs3vVivWpQp3dGb6X5IIQT+y1siJai8+DK53SgHR+qgpSUNx78T1M/Z2ShtpR81gA74q4/HcA3wnyZP57jJbJD3P85roJnX1ldQa+RMo3mmT8I="},{"i":"3b9b0133131d4953f570024de2271120","v":"UObTOjSzBaY4RqiX","c":"eoizT9Wzf2n29BhiUh71g5Ok/Ph7RspxUeEQyGzhd2hL+rLMdVP4f0qPM+FjmDsWjQcjdUfo4+UDJgxWcKCNaVXbaha0X8pDnu3fSa+rUOEDNwmkoFJhz5kNUWk1mO3IiORhq8RQkHVW3sbnQD0+PudQJK0vSWF1ZuHRptSz/Pybihl70/BWNRMOjyI4y9Ius1ULRkwtEhmxP8vMjjy2MQIKWUsN0PVNoQrlJGJ17w6c3H82ebt4avJA37s/6yLu"},{"i":"21f21e815970b25ae0440d8de295f8f1","v":"xI/n/OyZwNoiw+I2","c":"KHJaEm0bNB71BzZXmTaOZbB2rDgvcqpG9LPgGr4gnMTRN+6/9q6NVTmKxGD/ObcdyTw8HDyNfpxsPWTdDTv5HaX5zffcBKJxUMo8o9prTeFMYDXdF58FEzQSzvJRXoU1act4Ra+CJnyatVQ51LJBYdtyuthQBbQIafhQukzwWFVREGpVEEp274WAW4owBroPUFmdPYF+8x9yMgPsrfTiw+cVJ2gDbHCDXmOJxpKKdXl17f6Cd0sRJQobNN2TaSDIAngUZ9wHdZnWbJofAsbvJI81lfpgNrTv1w=="},{"i":"d0d4cea3c0beff174d3f2d975f9ca21d","v":"7nb65CbURTx6Rd63","c":"L0uneGiMSbqiPr4P2YKBAEwq9CCfaLHpFoEegW+Shya9fjWViJIwxcP+tR+EIeGGIhgCW+OWve6Psed0KP+XAG/gx6L4DXgnUJMgLkPn6qvmhxNxkpDUFt0CUAftd7VA+SqinA+6bxqSn/f+Ykpcr2xOykem7rAq10acIC8h+CRSAxOA1ffB7XS8c7izk49LO1Yq6jl1zL7e8LzVmUg/OK7uZq4H5PjvE+CzyItrmp2qOJhOuevRWTA42Zruscp2mGys7K3v69m2M7RT7TaKLyIGpMoGFegT/OLc"},{"i":"6dbaf212351c5d12a8bc076e3b647610","v":"X/nbZefADEa+sQ1h","c":"2d0ZDsxawlfdhrFXphLC6KWSYbcDcp5NGBwsvoj5J3ko9wVkVQ4OR0Qj3Vr28JXwv0/RpJTJU78kUzPX55Npr71gD8JeV452YpQf2KH2+Jf5DBjHQ+umwTcH871tYqpauapC8h56n4MIdpRMTNerS6nBb3wHKibgSPwXcgOJtfVeL8r87L04NWrdtxPdwqlu7JQ7cXrEQaQZQ9kcvaxSlooJPqlGjUC1x6PzQVplhhdeD0xz+vEb"},{"i":"90fc35cdf1ec374c3230330d044070b8","v":"gqJk7fD5c8fDUoCu","c":"HLfZSmsqyOv6Oe0NXyIHKFW6VKORnG0cwVjNtCOMeplie0qhsxSHGHliFTygxGry3MDpkd4IqvJN7KhqwZyzQgTMHgmj7r4utvN8J1f/LgT+Uk9l4Lalx+d0QE7sYpKqi023lacQH/RuCEXR//LLinDN3PDz7VZuY4MP8mAXjpF4vtt9diYd9EdP9MrpR9euJuzCUcQUJyG9zWaIUoRZSckE5wsmS8QkXUidNlO07cCUOhxZipP5EZBlkvORk67RJsRl8LEO8UFs"},{"i":"a8d12747d0e246454229ac7d64df43ed","v":"3NwoeXLuOpTMq6e3","c":"D0JrjNKBNaf4lkQmRU1voJAKwtlPe5qCELFV7/ymNOq4WIxKKBoWtEZDIoWtfMQDPq4Ai/8HeZJOe3nd+HvrctV8A80A3/yaA9Y9nnJz0zkJaDKCUuglibrzkCwaoKzluGENqdiTHb+2yNOXzp7jYE9jbWyBCUH3ZsbP02oouI9ysJ75Xiyv/5jdWFWWTfZnCOHWUS10yIetSkDWVYjjXPpAJwme6Gt/5z1kiqVUO0hEpwY2iCI4xDSvWBvNHqyrWUR8fYplBAZ+jQ+JY/uOKx7HG+bxCEy5"},{"i":"2716a13082132072cf0bb5f7397f0640","v":"xS0Q3OV4kC7TC5fY","c":"mTZ78pRouWfFWxzl/Q14KvSvddjQ67ka2ay4KLJQKr2kVWemuoP6HXKeZnpz4WSzqcFOp/xSyCFQGsADX7sUxMmGNZyvBnfxJGMvg73RKKXiYp4KOBp4tburyTIfjvdlhgfiRQ02mZOBoyXiG1q9G4wq8Jm05t5FOuIXJ/bxQphD4ebVq7RshyJsojdPXKDDMoJ/nEw2By/spzWIJF6Wic6VP5+PGaWY08KD6JCrN4KVMaWt5w2Nqw4ZbKzvY2ThNaieSJ1XTJ5TTWE1cCZiXLqwkhXuUaRopFGgYsvh"},{"i":"a26e5f94f27f1e9bc32b1f4f410f8ddb","v":"U8jrMnvCfFuiSwy3","c":"xLBG/kenADtbIQQF8Oz+iB5KpiybQ9Y2wLcF67mWUksVc0cX37QQRowgC6YsDYYI7eybSYBFZW1J/cddCgErtkBzR6CW+CPSJ+PSjcMUw34T+0L9v3ud2Ul007O+omMzz0OKwBc2fVcE/jR3wo6JjqkAYWVfDvmz+idOU5AXHTN96ET4Mxt6gEDxS71lFgCrnGPVbD42WKbjYVOJvqKDcIWpjI9GPJKCDVfn6Ef31LKrXXm3+wco0ETmuGCMqgvqwYjBztvMv1w8zoY70w=="},{"i":"985cdf469771ce4e7fcff9a2ee48ae11","v":"IO09cIhZZJ+TufOK","c":"aln9BhsBIS9xNK4ZG0pkEtW26SgGOUpPTRbbp3I3pa+yU8UOh3RbIGLqzhflfuNoLInFMxgEWvmfzTnSRUDNNCFJ+GS4nx0g2rU5IYS+pJbu9aADS7Oxvlvg5pxshnidS29xrPUFXpoK81AQpAi55ef2wtlCuvPNdk265MYOcmm7tOUqGXWxdLs0R6ZsLUWUs+4AGAD3EaGBOsKwe4nO8u7/gc1iM4+vNKamU9MKmgPbfYYiH9N1x345J8FUBpp+9MBzdo1cGyelAzHKOPe6ypQttxf6RHNgNIXoWdM="},{"i":"d084f387e4e2fe1de4a6794b71543fc9","v":"RxeKcHsXxvJmvX6v","c":"ogLUY5cPlKj7CJebqHwbH8GbZdmhP9AtSIX2Rxq/21UydrCAtUHQZC1b8tojSvWGMRPgD/4sIdoiXCZJ4aIBHHIeBV1/gQEboO6uU6FKN3KGZj5v6288GCV8z46/DqVtZWAVq96dNa8jcx+0Sh9/FwAeYBzQ6+aVnpHs6jVfUAuRT/pEj16sO/j1x4b1F+TEazQ/m26rVsJ/A/8N/GXApBj0Krjy2RY4kBDPU5qEQsC9VC8mPzM0nm7d"},{"i":"0d2b534493489ef21a7809a36e690633","v":"TyWdU4KREz2iUrFn","c":"zqFsEvLx0/AE86TVc7PN3eb7JL8xq+e+YxrieO4g3tqGzXz08K2EzdZFeN+lsRP58RqNN6Cy017ZEeW1nJy4HZAdyBrUnjXwoLX6UPd3qqoCLXrtXhTKwTkgSOxMif7M9eRR2CveSeLx8fY70SiJpvGhYPEpHyUiMZHVytZpeYeJ9nFJRViYmWJib9BnleOrPjNLVja0b/oLGUoRi4M34BcA0yAkilm/AU3w5cezLRFaGTJi/HBnKis="},{"i":"7a26fd0d2e283266558b08494f8b20c9","v":"DHglpKIdgV/FesN9","c":"5em4ETnPXR3JcDFKB3guT0ZCRjqfuPeozHx7wt2BPDf0JHNeVe9o6i4dgzdjpy7vI+4KJSmPXs6NKlAlc6FyjzUClMDGvAVtWpa1WN+c/lP06QlEqL5XIFHV9eihTJEPxYJjhoQ+1Nv/2fUrw9/iCEKlztS9H1gGW5eA5T2ciWiz0B8k8SKctOPJxgvHrAa6FwwrBm3RsDLySOZdmcY6hDzCQ/ZTbI3DF+BxHjBAnFAHbYzHZwshfiOmZtat"},{"i":"c05f770d88f6e01e184e33cc6f80c6d0","v":"XDanStXoY3oeFj7q","c":"ixvlPibs5H494ZXyYWIzaVcqUyRVcf9cNuU4GKEe/Oi6R9TT+5S7ndewENkDudrJ+EoXNV2nvbV7MwrF3ZD0GwRqQmp78y3lri+wkd56Er1b1YdvmMtOUJP1osAEAujedKoYvEbTmSrVco3o0A/TJm31xIVKPRopURvWmXM8k1jZIvznfM1YdSBS4xW13YT1170C84t3T95r0BaAtl5xTZLeycgPiDlNVqSaV5vGuB9heMtFM9aaOfT4jm9YlMK12qFIHIUGY7iBsHiIQL8="},{"i":"2340f8731f0a14e6304fefc0c626fde0","v":"zG/yNGOHHfUF87Rl","c":"Cgyx0ZOxqUl6q/lJ6OLuq20R5NAqqxPRMQCZ8PM8rLy8vsxNELDGXQsCWyKkV84IZGAKOZefUhUtkFp/oD3nrexZKbAtutnsCahEGzAxoPlbBzBLVjeHmbu5LAH/ZoM/BwTO86+TZgp7X3dDo/zYUnB0P/n5IMiXuwdEq9OenAOmRS8I5xP+5vK17xK7dEKwIg7gZJ5C8HkptcauDvTJ05QemEvCruS0zWddyXn1znNgKujHNzXlnWHyHU3+uTPVu2o49gg0VQ8V2rSBNhW6X8xiniI="},{"i":"18cb544f5b55372336c8049926933e67","v":"smSyzlMdGtv//Zjk","c":"hDBy5jOzazdD981n5N+sQ1fOS/1DZZeMlxcmtvLS53/+NJCUrR2nBHCKPgz8zwqPUGrgFV+P97qpKU4RpibbsyG5ebU/fHEPzioZM21uwP7JBbbptDpoFxT3KbC0r83Xt+MLGZoCXbJFuLh9HCI47R3vkmnNzI2gb2nfqINBbsg9txozPctbdTPBLP0oW2Gel/eUz+Zjs3Degzv9Srt8FFW+IRIAMvDdhtwjD6PSWxRqb2X5m3In8+2wmvJdd9d1kLIoe94MZ03S7fqRGkg1J8WzoLqo8ysGs+KhtwGt"},{"i":"4e2c70f4c10853931d8abf4f7307b0b8","v":"BMHKcUG8dtw/YQNo","c":"IthvhwZjppCgmPZE9L9K7y5xfFFFXA05Xa+RoasBc20DXJrDXWVr6fR/wZhNpfCAn46xg5taRw/Yh7DKYSLj2OxJtbz3dXbLJZVox1VFa7MAdxchgo0idJes+wbU5hw4USekjiYYdgIUTd0zO5XP8545KL08hAZYD2M/895aJ7gvHN3KhExtqxjFiCn44L1nBXPjiHW45OSCsasdrWY92HZls701g8Vs6dpsUDDz6t7saO2t2hAvaiAcj9f2sqhkTOUEpKI="},{"i":"2f0291f350e89c2a38429a00c6ef1449","v":"sc4A8qva2eaijm9n","c":"FDKU1HiHHALaGMUC3XOjz30etYRbu3KyQFric2kD5wwWj1yjmn5EifBC712ZbL4Ts4JBueQCKnri0/lmyoYFW/xq4JnaDasgXdAY1a8ZpE5H9YaBGsuLGf0ISIy3ll24nIt0gdp/T2ZAjK4AdR09bwYqPOYenXaAKNAChYELkvdG74s0ig4xZWWLxfLo8RPZaZBlvdjgNiKHOeQAQ29OnN7fYdBKDgcVtuFWmLuYtjRHSbXksxQLXJ5/2NI8rcBpRbY4"},{"i":"4a147c41dc792b0055b4bbb43d488880","v":"mYMZvNqjQJGiL5ia","c":"HdaZiDuKGJUWCHVmsYpr0Snc6MBRC/XbF9kylc47MK2Of2zb/SL6uB5dspc1OQSXPnWTsyGLU+r1Rlz+3XPjuNAoqhN6Dl0mb1E3Xm6PzruYl3NFFaNNprsiD1Pwcq2l7nRhMrr5K3HaYU+yhV60XUuHf/1mhUGNU/njz8SbWIzJAS4xbX22SpgBXayFDygJnNx4h6iqeRkFNwoHmfVvcxZ97jBNOc6tmzeaDgUZNmPWJMM4eelbXrk5+DhoDDtiT7nvefRWHz2C75qCxwX9JAk="},{"i":"183550692255c79f2caeeb5c37e98d05","v":"CYtL2zVTqhzCMakH","c":"yjWG+S3BRyNBAjsmDRPz8hNYoZw/J3DOxsK1DIYl5kaJVbZ3F8SNNdBDCaUIsOgcnbD76IZdZCdY0E2boFpr2luD+Ti+dw/wM3JK1iEVtql6kjlkSDuLcAEjiwc/V++lhI2ydxuJCS1QpEXX8O2k4Kv2oIqUgi20MDlYWAjUBZIS+3c/TEtUp6M6vZUPGa0T0gwiDQYsN2srQ3bs0xTGGSG2WiSip62PQGFyrpfSZTdptojOAQ=="},{"i":"ff2f77bac5542a88d8daf34550dd2435","v":"nKWLTcKB5vsWlNZB","c":"spOCBNvEixqC1wj5uSa9mp8UR/hyU2jV5jtQJSOWV/5vvIVEJReHLZNcn9TM1shviWFJ7xv7xcgPmYTkaNhgpR3KY+Uo9ncE0g2jGXTK5Cj46QXfFhWLuByeBvFZbALTrDpj71SCWBNBo7tZWhONNLmFUt+X+ZypaUWotpslsUWvm8OUMdDm0zF/MRsJOaEUBHs42potd24tw37abhDUHXHtmWQqXgsp9/XLUjyg/h6dDPWfM53W9R0jRy7d2ujr1kGfWSGLZz4WxCO/CSeWFWyyJzCsEMhST4F8gItyzyrNAw=="},{"i":"7add75dc085a8041002750689f7173fe","v":"+aNzG/+U5FP7KMH/","c":"nO1p16/fCKtIC/qCm+qYm8AuO34iFPmWIp3V2hfMF13QOls73gEWkWYC5DLaqHPGXeVXpeXU/UwNOd/upcI9eoVETWHtniNOZ+7p9XsK6EH1VOFtvCLRmhcjkIlQisAGRBxQ9g+odgmGck65g6SXjHmFM0bCuBUXL0eGptYFTnqUeHnRLzFDlUW1VE2gUF/4BrRcv7aii2C500iai9FZhIw+MziX7HoEP8xmaek57HSQrHf81zblPHwWlP4cA+T4EzX8Dwss2YsbhsCHhQRYCOkaCLJoU9r2QWFvhNw/"},{"i":"4d8627a6dc6afa105aec6168b7ab9149","v":"mungerbZwQQ6VrTP","c":"cdEiywl8a/D40dlzJr6yeMApaEokKdxtg9BhDq52brBZ+fF8iJZzPL3lpMymJnULv6OesbMNzi31s01ezr9Qj0WhIVVXKgbqTxrgRonbHd/JTXsfWbM2PolBoBNDmowGhruTqKWuY6k72vWJUJr+M/+AIjJdQla595m65H4jrPcnEjZIw/YfIY5vpx+vU2UHsSzWkXFfThzYWsQIvwHA/ma8C7T9IRLAylXlUZl9tX6NqZmWEW+1Fq62OD/DsXJT1rgLL3iKCMlte/fThwnscreC"},{"i":"0d0bf53c173fff6ac529952da8176fca","v":"oSPuqspUT2JrjC3S","c":"Uml1Gkfu7MOl/cIQlMUd7YYVe7u4XO1EVr4e87lvLehZkd8A+ixUPzXUP4WbmDrQVHx188taFx6Xz6IkmGHGD9QstNpaOMLnJBP+BPNwCeWGdYTZFEVdQHUO8YwXauVq6O+oHnKt2V9dAPf+7yvcmRKkts2a0RxieHM4HYuT39uV54Y284xXa9Kl8yKRI+GOmTmTljzW4RRXUaSzEGmjI2TSJ79ZElG/N60BWPLcQgPVfGWWoq7q3KeP+hoZ"},{"i":"2d5d0412282421bff0374b75b093fc4d","v":"0UUIv4bTWp7zshS/","c":"1vAw21xnuHuU1fsHXE4+UKKgRVwz8RYUXR25DncsCB6qnRgYGI8BTMc47S0j78FB9s+G6WZKnL4ioLjD4HWWR8qnN/Eya+mYax+U1PHhIEmTUj/rj79ifDS98179JW1PBcnsFNXYKuhQYO5YHeoS3b7T/QP04aRv8YueC4GuuldmdXTpnROikH9jwvnjRtkRKyGrrsCXqs0wocRaJ4+24AJlEgupucQRrEBBBsp0tHT/FNcD3x+9bhOkcO31MrO6"},{"i":"f4971646b34346c280feefcdcb81da0e","v":"MKuaNA19Oh/rlDs3","c":"dDg5WSyPl0EJ6bFzI71POGUYF+KxINVgLMl2wv2gyWf+ZgAgn+WckPvSpCOcVavVcXJBCOmaOSxdrIyjQnzJ2nxbWUKSFm/meeDQH8NerkXke0kzzzWW9kZKsvYf03yof8lqLg9dNpvjkjzkk/19vpAHDOQY7z4vA54e+KoORBjN9dpYiqnav157C1WmCQFY4Y6soIFSvJi9IFMB5SlHyB4z3Rax8VbGLL2E1iMX54bqjM0l9pOC7wUgmObFuxD4R4mgPgCQExc="},{"i":"2aa5c1992782039411e543d9fd37626b","v":"nfIgxjfdU25YQLH9","c":"bKGcwPSAEYb9HNhrnCyl618hOGYy1qY7RoaZ3Qijie76OAAKwikstIhjVmYi4Nr5bfuW7LxjrZycqPjAvazRrk7v0FR3oRFANxBNwYep08om9s8i6LeNBzs8zt49XBD2n68jcszwFtKxOu5FZ8z3wXU8SqS2IhlACRTcCdW9cArZUqU90vELGSVq+TAExWOlip+fvlKH8feMe1BwBgXMqDNxKG4PrtnU+h3MY/UZf97Lnlk3KXTFrcwSeNl/fKQtOh0="},{"i":"2db44b1ac3a743700a3ce460a865281d","v":"yTWGraNZtemvd9Og","c":"t9cZQPwB+ea2OPJ+knHn1jpemcduhDKuCAbB3AZzrZ+mwBOFxot516gpLHQ62RLGGsWBhMR6qbzTMvuqzWsfkc1MUumTWP7wQVu6BHXjt1XXHsjanUDJs+pQccVwC+t/nF0gEGtZ9tmIAr9AxwagtKmML/zF/rVzWyHwi8oYU4Trryf+RkwSCjJxr5jvtOadsJCrNOzUkRHdph3PNowKMnS2sZTen4aWFyMJPPI9GxQ5wSuxRpPWnGLnsYR2ui2FY7DPpdppqFSKg+vgH+w0/vvuuekH6B3jeHbDFOxrGWAxlNlQ7Q=="},{"i":"15736a82cac5748fc49d56833f5f80e1","v":"VFcfecJItr9TDPR/","c":"lBDbzrCybsApe7WIwBrw10QQXpykfJe//zZ2NE0FUPpv0TjH2+CdNdH38nCPpm359a/HyJttiRrGM6YYgiLlI0MWHCHk1JcwDln67J1+tIbBFblyzyYA1t+fMCa8Vmek4WMtBAgX/Y6nZGuRi2uiTY8ZaXjFLFlkKxYtpCENShpW/w7QD+AtuQ3wqdMfrMQnKR7EYstjJ+2ABtP+/Xxn08VEq/O969xqIDqVlQ4orwDl7gmzCh6kD/obUnEB6hjGXM8+oUCSQiDsQA=="},{"i":"2afc35a108d77ffa68a0be593f433d3a","v":"OE7aXZXPh3GuvG2j","c":"CWUL3z+R7eVo2S4FrC0IMY7TBOJWgDQjlGqKMpr3qbbNksZLCF4qECaGMrWJ23b6GTLwABVQ/VbchKfC8h9vVOKGbb/SwV0MqaOLkzWoPDIBkXipbE4rzM2KPg8MHttEwDXab9w0YPVQ/fvstEZzwJbJnPvaGmmlLUv+UvbcSSFwRKSy79VT2PBLahbbIKl9xnPz5jlNdSKio/A1Bpo+oLT0DOZdBOEx+Z2cNLR7Eu7479yDvXPbypc3ozYDoQsYFSvBRnKl8nTp3Ec3najHwy3NotuSAKZI/X85I1luZw=="},{"i":"2efcb315659cb732edd20df669d268eb","v":"uckclHTKynPjOZxQ","c":"UgwshkALozItodDrdONUN0xF4asFbc1Bq1MfStpRCkm6tan7DCrzbznzINFt/hDZLhmTaqctPbgnfZqLE8OCHEvrZpjyp1HqoIFk7cRynXAENbWdMn8cXl2Kd3B0tr2httfCE/qqGLrb1pzapVulKQnvY4+cvhupvXsJlw1H5FeJbV4j1pRiEO8oYZrtq40C5Kpz88N72ErGrOlEFaw2h2xHrGASIwhTwOIsbkQJP/7UbjSY76WQMyR0kPEaJLIN4MkwvBaNoK3ClLWHyqcoiDPBhNcrZ1bc0BZoFcdR"},{"i":"e5965aa15bbbd59ae0300e165354b398","v":"shZbodGOiUlOXTUn","c":"rRtFUgXEU5dVnlKYd0GhAq4vHwxD9gSoj8pJ6NRcHtr3iOXjNzfPIe9mFGJhsd+UpzAJUnoSW7XBlDdgVc3ffwwYEkRCMEYOflvQGvSoKSDlo+lQ4PVnXlCU2u2w/JIJ/QbJWJ2i+vMoE7d/e1HX66AoMMyGrlwDVKEhhbdMr9ZxD80gfF2ssFJFdcTgnfhhELSElZb3s15QRT7LG6Tr4m3EaO6fYYtQOnBLSIQivqnSA+CYRqFpRhzoUlBGQmKLRkoFVwMqEAcV1B9cpgzaNg=="},{"i":"d0e2757e2a8b006dc3fe37396b819bf5","v":"ADYxLmWUvT3OC1Hv","c":"GUH6druOi22syIXJ02aqPq/ROJ6XQbTTksnvqC3zWtc0EoL+pkme570xOgwv6fmVT3WAMlo6yKbemThDbNhuLLQODFXs2Uu5Z3tIcmZg8tx2ze9EK1bj16jPlD8rWbDb0wflbvAcXrap3aEUjhJFpo9bqoA0S0qfo76g8n2squtEEEwNJdpJBbjpyDO10OwjNXe8x9NVLLN10nlBn//kW8lAAiiY8tHDb5VV83PIAr0onDVsztsGn08Hqt1aojRdJ/BZad3McPKU4bBdIX8HTediCA=="},{"i":"c1939a824fcd8fc857c4f5269b4ee968","v":"BPSWhbtnmIlCnkvG","c":"TXI8urbh0kwYD9tQfthzSxCLlTtow0kP29z40N4GiIxHKPDTcn7thLu2Diy6lz2xzOTS6NTAQEvUQ2pppe16ZHds5+A62EHfmH9tXHbakCTU2NUJkX05Fi2lu87ZzBvk5LA/CCQipg2ixzJvWvgNt0rQuls+SqWBnwGYFVVPe7HWRGi61fbmLs6nek7wbMMWrQzFksP2sQuC4fpM6K7hnsrLaxG58glvOUm7htI/a9Un5ihyNcAVYTA94mYs5HyxJ4J9FPPgYlwF63PS2kfiFhB+Mg=="},{"i":"a021aa2edf8e92cbaa378c1d225ae730","v":"lwQtzlX6axQGaNwX","c":"Y/5QYmhFbhu6vSYNEFi/mwDStn6vZXtUUK5gK6ZTRhILUQTx4s/vNTun/J5WTO4dsqaKlF6lbHKWwCmPzXmC9u3aWVxLf/Gn2MuwPpnvm0SE0JPGLt8jZhQ3i3aDx+A6180k57dD6gk23Kj8OaFRPVwGymBs/ZbBnR6v0twaWDTTDXFqhtQ7bP2FeqUviX9J34rwLR0KHZkeEqRutnRo2VKd4uGVtUmCqlWGWoFiz+kbpc6rPjW/ecqEvLzYtL9yiqCmDTXYd5iZEbzpkso="},{"i":"97138ab11fcf76bb14d7b387190bc868","v":"jQ6MlcaHXxEPztDm","c":"XgUtQJhuO3mf3VmyWz/zJTm2toPJYvwajrWl+SFPWT4P9rBhxF8WNN61UOhRCGzYxxqNunpFu1EpiSa2jJA3JZnu7Un/DRNge5AljAyNsuWnnQrpsh3vxCHzsZJ+i39an+tCGJtm2vB5rXzXXctPRuSlUCrzWqwDpvphAAHBCV0vpybbKbNYI/7O2uds81NQ2yHDV/qwO6g/Qt/mawWOy9u5+7QqZYX/tsNLEpfjwoC+tYA9ywMymYJZ/HcnVFpmGQUG61NxHG4sE6sLXMxWtgGlxr8="},{"i":"d4320fb755cc094fe3892500d7633f2d","v":"KwvfSDEByo2wrjja","c":"uxMAC6xH/4DhMBxE0XOYok4YWmSIzH5KTio5d8Su1oo6H/GIdzb+dB33GmJ5fB2M7DqgpT8chFDxsfhJt/w4UStxuSiSog7PDcmV1lg3y3Yl1HELBUW9wcUUw8v7sbNgbd9wGYhbmk5qqz+QKBmvI7yThEdslMBOepIQUHX5ceeUruOjDtpAPoBkDh7PakFQt4t39AvGr1ZEVlS4kn6FK0wHrDm0wrp9cUyJXk8PDK4gNZN5Vxd18hxXhzaC6x8="}]};
+const EMPLEADOS_FECHA = "2026-10-09T17:00:00.000Z";
+const EMPLEADOS_BASE = [];
+/*EMPLEADOS_FIN*/
+</script>
+<script>
+/* ============================================================
+   Portal de Trámites GAF · La Calera
+   ============================================================ */
+/* ============================================================
+   BASE DE COLABORADORES
+   - La lista base viene embebida en este archivo (EMPLEADOS_BASE).
+   - Desde Panel RRHH se puede importar un Excel/CSV con ingresos nuevos
+     o la planilla completa. Los cambios se guardan en este navegador y
+     se puede descargar el HTML actualizado para que queden permanentes.
+   ============================================================ */
+const HTML_ORIGINAL = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+const LS_EMP = "empleados:base";
+const CAMPOS_EMP = ["codigo", "Nombres", "apPat", "apMat", "cargo", "area", "ingreso"];
+const ETIQUETA_CAMPO = { codigo: "Código", Nombres: "Nombres", apPat: "Ap. paterno", apMat: "Ap. materno", cargo: "Cargo", area: "Área", ingreso: "Fecha ingreso" };
+
+function normDNI(v) {
+  const d = String(v ?? "").replace(/\D/g, "");
+  return d ? d.padStart(8, "0") : "";
+}
+function normCodigo(v) {
+  const s = String(v ?? "").trim();
+  if (!s) return "";
+  return /^\d+$/.test(s) ? Number(s) : s;
+}
+function normalizarEmp(e) {
+  return {
+    codigo: normCodigo(e.codigo),
+    DNI: normDNI(e.DNI),
+    Nombres: String(e.Nombres ?? "").trim(),
+    apPat: String(e.apPat ?? "").trim(),
+    apMat: String(e.apMat ?? "").trim(),
+    cargo: String(e.cargo ?? "").trim(),
+    area: String(e.area ?? "").trim(),
+    ingreso: String(e.ingreso ?? "").trim(),
+  };
+}
+
+let EMPLEADOS = MODO_PUBLICO ? [] : EMPLEADOS_BASE.map(normalizarEmp);
+let EMPLEADOS_FECHA_ACTUAL = EMPLEADOS_FECHA;
+let EMPLEADOS_ORIGEN = "archivo"; // "archivo" | "local"
+(function cargarBaseLocal() {
+  if (MODO_PUBLICO) return;
+  try {
+    const raw = localStorage.getItem(LS_EMP);
+    if (!raw) return;
+    const o = JSON.parse(raw);
+    if (o && Array.isArray(o.lista) && o.fecha && o.fecha > EMPLEADOS_FECHA) {
+      EMPLEADOS = o.lista.map(normalizarEmp);
+      EMPLEADOS_FECHA_ACTUAL = o.fecha;
+      EMPLEADOS_ORIGEN = "local";
+    }
+  } catch (e) { /* sin almacenamiento: se usa la base del archivo */ }
+})();
+
+
+/* ---------- Definición de trámites ---------- */
+const TRAMITES = {
+  gratificacion: {
+    nombre: "Adelanto de Gratificación",
+    desc: "Adelanto de gratificación Julio / Diciembre",
+    folioCode: "GRT",
+    icon: `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="5.5"></circle><path d="M12.5 4.5A5.5 5.5 0 1 1 8 13"></path><path d="M8 15h.01"></path></svg>`,
+    fields: [
+      { id: "gratificacionTipo", label: "Gratificación a adelantar", type: "radio", options: ["Julio", "Diciembre"], req: true, half: true },
+      { id: "monto", label: "Monto a solicitar (S/.)", type: "number", req: true, half: true },
+      { id: "motivo", label: "Motivo de la solicitud", type: "textarea", req: true, half: false },
+    ],
+  },
+  sueldo: {
+    nombre: "Adelanto de Sueldo",
+    desc: "Adelanto de remuneración mensual",
+    folioCode: "SUE",
+    icon: `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="13" rx="2"></rect><path d="M2.5 10h19"></path><circle cx="7" cy="14.5" r="1"></circle></svg>`,
+    fields: [
+      { id: "monto", label: "Monto a solicitar (S/.)", type: "number", req: true, half: true },
+      { id: "motivo", label: "Motivo de la solicitud", type: "textarea", req: true, half: false },
+    ],
+  },
+  prestamo: {
+    nombre: "Solicitud de Préstamo",
+    desc: "Préstamo de salud, vivienda u otro",
+    folioCode: "PRE",
+    icon: `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12l3 3 5-6"></path><path d="M3 7.5l9-4 9 4-9 4-9-4z"></path><path d="M3 7.5V16c0 1 4 3.5 9 3.5s9-2.5 9-3.5V7.5"></path></svg>`,
+    fields: [
+      { id: "tipoPrestamo", label: "Tipo de préstamo", type: "select", options: ["Salud", "Vivienda", "Otro"], req: true, half: true },
+      { id: "monto", label: "Monto a solicitar (S/.)", type: "number", req: true, half: true },
+      {
+        id: "domicilio",
+        label: "Domicilio actual (para Declaración Jurada)",
+        type: "text",
+        req: true,
+        half: false,
+        placeholder: "Dirección completa, distrito",
+        showIf: { field: "tipoPrestamo", equals: "Vivienda" },
+        hintText: "Se usará para completar tu Declaración Jurada de Préstamo por Vivienda.",
+      },
+      {
+        id: "fotosEvidencia",
+        label: "Fotos / evidencias de sustento",
+        type: "file",
+        req: true,
+        half: false,
+        multiple: true,
+        accept: "image/*",
+        showIf: { field: "tipoPrestamo", in: ["Salud", "Vivienda"] },
+        hintText: "Adjunta fotos o imágenes que sustenten tu solicitud. Se incluirán automáticamente en el formato al descargarlo o imprimirlo.",
+        labelByValue: {
+          Salud: "Fotos / evidencias médicas",
+          Vivienda: "Galería fotográfica de tu vivienda",
+          Otro: "Fotos / evidencias de sustento",
+        },
+        hintByValue: {
+          Salud: "Adjunta boletas, recetas o informes médicos que sustenten tu solicitud. Puedes seleccionar varias fotos a la vez. Se incluirán automáticamente en el formato al descargarlo o imprimirlo.",
+          Vivienda: "Adjunta fotos del estado actual de tu vivienda o de las mejoras a realizar. Puedes seleccionar varias fotos a la vez. Se incluirán automáticamente en el formato, junto con tu Declaración Jurada.",
+          Otro: "Adjunta imágenes que sustenten tu solicitud. Puedes seleccionar varias a la vez. Se incluirán automáticamente en el formato al descargarlo o imprimirlo.",
+        },
+      },
+      { id: "motivo", label: "Motivo / sustento de la solicitud", type: "textarea", req: true, half: false },
+    ],
+  },
+  cambio_cuenta: {
+    nombre: "Cambio de Cuenta",
+    desc: "Cambio de cuenta de haberes y/o CTS",
+    folioCode: "CTA",
+    icon: `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6"></path><rect x="4" y="10" width="16" height="9" rx="1"></rect><line x1="9" y1="13" x2="9" y2="17"></line><line x1="15" y1="13" x2="15" y2="17"></line></svg>`,
+    fields: [
+      { id: "tipoCambio", label: "El cambio aplica para", type: "radio", options: ["Haberes", "CTS"], req: true, half: true },
+      { id: "banco", label: "Nombre del banco", type: "text", req: true, half: true, placeholder: "Ej. BCP, Interbank, BBVA..." },
+      { id: "numeroCuenta", label: "N° de cuenta", type: "text", req: true, half: true },
+    ],
+  },
+};
+
+/* ---------- Estado ---------- */
+let empleadoActual = null;
+let tramiteActual = null;
+let solicitudes = [];
+let ultimoFolioId = null;
+
+/* ---------- Solicitudes (en memoria) ----------
+   La web no guarda las solicitudes: el colaborador genera su formato,
+   lo descarga/imprime, lo firma y lo entrega a Gestión Humana. */
+async function cargarSolicitudes() {}
+async function guardarSolicitud(registro) { return true; }
+
+/* ---------- Toast ---------- */
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll(".tab-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("view-" + btn.dataset.tab).classList.add("active");
+    if (btn.dataset.tab === "admin") renderAdmin();
+  });
+});
+
+/* ============================================================
+   BÚSQUEDA DE COLABORADOR
+   ============================================================ */
+function nombreCompleto(e) {
+  return `${e.Nombres} ${e.apPat} ${e.apMat}`;
+}
+
+const buscarInput = document.getElementById("buscarInput");
+const searchResults = document.getElementById("searchResults");
+
+/* ---------- Cifrado (versión pública) ----------
+   En la web publicada, la base no está en texto plano: cada colaborador
+   está cifrado con una clave derivada de su propio DNI (PBKDF2 + AES-GCM).
+   Solo quien escribe un DNI válido puede ver los datos de esa persona. */
+const _enc = new TextEncoder();
+function _b64(buf) { let t = ""; new Uint8Array(buf).forEach((x) => (t += String.fromCharCode(x))); return btoa(t); }
+function _unb64(t) { return Uint8Array.from(atob(t), (c) => c.charCodeAt(0)); }
+function _hex(u) { return [...u].map((b) => b.toString(16).padStart(2, "0")).join(""); }
+async function derivarClave(dni, salt, iter) {
+  const base = await crypto.subtle.importKey("raw", _enc.encode(dni), "PBKDF2", false, ["deriveBits"]);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations: iter }, base, 256));
+  const key = await crypto.subtle.importKey("raw", bits.slice(0, 16), "AES-GCM", false, ["encrypt", "decrypt"]);
+  return { id: _hex(bits.slice(16)), key };
+}
+async function buscarEmpleado(dni) {
+  if (!MODO_PUBLICO) return EMPLEADOS.find((e) => e.DNI === dni) || null;
+  const cache = EMPLEADOS.find((e) => e.DNI === dni);
+  if (cache) return cache;
+  const C = EMPLEADOS_CIFRADO;
+  const { id, key } = await derivarClave(dni, _unb64(C.salt), C.iter);
+  const item = C.items.find((x) => x.i === id);
+  if (!item) return null;
+  const plano = await crypto.subtle.decrypt({ name: "AES-GCM", iv: _unb64(item.v) }, key, _unb64(item.c));
+  const emp = normalizarEmp(JSON.parse(new TextDecoder().decode(plano)));
+  EMPLEADOS.push(emp);
+  return emp;
+}
+
+let busquedaSeq = 0;
+buscarInput.addEventListener("input", async () => {
+  // Solo se permite escribir números (DNI). Cualquier otro carácter se descarta al instante.
+  const soloNumeros = buscarInput.value.replace(/\D/g, "").slice(0, 8);
+  if (soloNumeros !== buscarInput.value) buscarInput.value = soloNumeros;
+  const raw = soloNumeros;
+  const seq = ++busquedaSeq;
+
+  // No se muestra nada mientras se escribe. Solo al completar los 8 dígitos
+  // se revela (si existe) ese único colaborador — nunca una lista ni datos de otros.
+  if (raw.length < 8) {
+    searchResults.classList.remove("show");
+    searchResults.innerHTML = "";
+    return;
+  }
+  searchResults.innerHTML = `<div class="search-item" style="cursor:default;"><span class="buscando">Buscando...</span></div>`;
+  searchResults.classList.add("show");
+  let exacto = null;
+  try {
+    exacto = await buscarEmpleado(raw);
+  } catch (e) {
+    console.error(e);
+    if (seq !== busquedaSeq) return;
+    searchResults.innerHTML = `<div class="search-item" style="cursor:default;"><span class="meta">Tu navegador no permite la búsqueda segura. Ábrelo en Chrome, Edge o Safari actualizados.</span></div>`;
+    return;
+  }
+  if (seq !== busquedaSeq) return;
+  if (!exacto) {
+    searchResults.innerHTML = `<div class="search-item" style="cursor:default;"><span class="meta">No se encontró ningún colaborador con ese DNI. Si eres nuevo ingreso, comunícate con Gestión Humana.</span></div>`;
+    return;
+  }
+  searchResults.innerHTML = `
+    <div class="search-item" data-idx="${EMPLEADOS.indexOf(exacto)}">
+      <div>
+        <div class="nom">${nombreCompleto(exacto)}</div>
+        <div class="meta">${exacto.cargo} · ${exacto.area}</div>
+      </div>
+      <div class="dni">DNI ${exacto.DNI}</div>
+    </div>`;
+});
+
+searchResults.addEventListener("click", (ev) => {
+  const item = ev.target.closest(".search-item[data-idx]");
+  if (!item) return;
+  const emp = EMPLEADOS[parseInt(item.dataset.idx)];
+  seleccionarEmpleado(emp);
+});
+
+function seleccionarEmpleado(emp) {
+  empleadoActual = emp;
+  document.getElementById("card-buscar").style.display = "none";
+  const card = document.getElementById("card-empleado");
+  card.style.display = "block";
+  document.getElementById("empNombre").textContent = nombreCompleto(emp);
+  document.getElementById("empCargo").textContent = emp.cargo;
+  document.getElementById("empDNI").textContent = emp.DNI;
+  document.getElementById("empCodigo").textContent = emp.codigo;
+  document.getElementById("empArea").textContent = emp.area;
+  document.getElementById("empIngreso").textContent = formatFecha(emp.ingreso);
+
+  document.getElementById("card-tramite").style.display = "block";
+  document.getElementById("card-form").style.display = "none";
+  document.getElementById("card-confirm").style.display = "none";
+  renderTramiteGrid();
+}
+
+document.getElementById("btnCambiarEmpleado").addEventListener("click", () => {
+  empleadoActual = null;
+  tramiteActual = null;
+  document.getElementById("card-buscar").style.display = "block";
+  document.getElementById("card-empleado").style.display = "none";
+  document.getElementById("card-tramite").style.display = "none";
+  document.getElementById("card-form").style.display = "none";
+  buscarInput.value = "";
+  searchResults.classList.remove("show");
+});
+
+function formatFecha(iso) {
+  if (!iso) return "-";
+  const [y, m, d] = iso.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+/* ============================================================
+   SELECTOR DE TRÁMITE
+   ============================================================ */
+function renderTramiteGrid() {
+  const grid = document.getElementById("tramiteGrid");
+  grid.innerHTML = Object.entries(TRAMITES)
+    .map(
+      ([key, t]) => `
+    <button type="button" class="tramite-card" data-key="${key}">
+      <div class="icon">${t.icon}</div>
+      <div class="nom">${t.nombre}</div>
+      <div class="desc">${t.desc}</div>
+    </button>`
+    )
+    .join("");
+  grid.querySelectorAll(".tramite-card").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      grid.querySelectorAll(".tramite-card").forEach((b) => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      seleccionarTramite(btn.dataset.key);
+    });
+  });
+}
+
+function seleccionarTramite(key) {
+  tramiteActual = key;
+  const t = TRAMITES[key];
+  document.getElementById("formTitle").textContent = t.nombre;
+  document.getElementById("formSubtitle").textContent = t.desc + " — verifica tus datos antes de enviar.";
+  renderForm(t);
+  document.getElementById("card-form").style.display = "block";
+  document.getElementById("card-form").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+/* ============================================================
+   FORMULARIO DINÁMICO
+   ============================================================ */
+function renderForm(t) {
+  const form = document.getElementById("dynForm");
+  let html = `<div class="form-grid">`;
+
+  t.fields.forEach((f) => {
+    html += `<div class="field ${f.half ? "" : "full"}" data-fieldwrap="${f.id}" ${
+      f.showIf ? `style="display:none;"` : ""
+    }>`;
+    html += `<label for="f_${f.id}" class="field-label">${f.label}${f.req ? "" : " (opcional)"}</label>`;
+
+    if (f.type === "text" || f.type === "number" || f.type === "date") {
+      html += `<input type="${f.type}" id="f_${f.id}" name="${f.id}" ${f.req ? "required" : ""} ${
+        f.readonly ? "readonly" : ""
+      } placeholder="${f.placeholder || ""}">`;
+    } else if (f.type === "file") {
+      html += `<input type="file" id="f_${f.id}" name="${f.id}" ${f.req ? "required" : ""} ${
+        f.multiple ? "multiple" : ""
+      } ${f.accept ? `accept="${f.accept}"` : ""}>`;
+    } else if (f.type === "textarea") {
+      html += `<textarea id="f_${f.id}" name="${f.id}" rows="3" ${f.req ? "required" : ""}></textarea>`;
+    } else if (f.type === "select") {
+      html += `<select id="f_${f.id}" name="${f.id}" ${f.req ? "required" : ""}><option value="">Selecciona...</option>${f.options
+        .map((o) => `<option value="${o}">${o}</option>`)
+        .join("")}</select>`;
+    } else if (f.type === "radio") {
+      html += `<div class="radio-group">${f.options
+        .map(
+          (o, i) =>
+            `<label><input type="radio" name="${f.id}" value="${o}" ${i === 0 ? "" : ""} ${
+              f.req ? "required" : ""
+            }> ${o}</label>`
+        )
+        .join("")}</div>`;
+    }
+    if (f.hintText) html += `<div class="hint field-hint">${f.hintText}</div>`;
+    html += `</div>`;
+  });
+
+  html += `</div>`;
+
+  html += `
+    <div class="checkbox-row">
+      <input type="checkbox" id="f_declaracion" required>
+      <label for="f_declaracion">Declaro que la información consignada es verdadera. Al enviarla, podré descargar el formato ya completado para firmarlo de manera manual y entregarlo a Gestión Humana.</label>
+    </div>
+    <div style="margin-top:20px;display:flex;gap:10px;">
+      <button type="submit" class="btn btn-primary" id="btnEnviarForm">Continuar y generar formato</button>
+      <button type="button" class="btn btn-ghost" id="btnCancelarForm">Cancelar</button>
+    </div>
+  `;
+
+  form.innerHTML = html;
+  wireConditionalFields(t);
+  wireVacacionesAuto(t);
+
+  form.onsubmit = (ev) => {
+    ev.preventDefault();
+    enviarSolicitud(t);
+  };
+  document.getElementById("btnCancelarForm").addEventListener("click", () => {
+    document.getElementById("card-form").style.display = "none";
+    document.querySelectorAll(".tramite-card").forEach((b) => b.classList.remove("selected"));
+  });
+}
+
+function wireConditionalFields(t) {
+  t.fields.forEach((f) => {
+    if (!f.showIf) return;
+    const trigger = document.querySelectorAll(`[name="${f.showIf.field}"]`);
+    const applyState = () => {
+      const checkedRadio = document.querySelector(`[name="${f.showIf.field}"]:checked`);
+      const selectEl = document.querySelector(`select[name="${f.showIf.field}"]`);
+      const val = checkedRadio ? checkedRadio.value : selectEl ? selectEl.value : "";
+      const wrap = document.querySelector(`[data-fieldwrap="${f.id}"]`);
+      if (!wrap) return;
+      const visible = f.showIf.in ? f.showIf.in.includes(val) : val === f.showIf.equals;
+      wrap.style.display = visible ? "block" : "none";
+      const input = wrap.querySelector("input, select, textarea");
+      if (input && f.req) input.required = visible;
+      if (f.labelByValue && f.labelByValue[val]) {
+        const lbl = wrap.querySelector(".field-label");
+        if (lbl) lbl.textContent = f.labelByValue[val] + (f.req ? "" : " (opcional)");
+      }
+      if (f.hintByValue && f.hintByValue[val]) {
+        const hint = wrap.querySelector(".field-hint");
+        if (hint) hint.textContent = f.hintByValue[val];
+      }
+    };
+    trigger.forEach((el) => el.addEventListener("change", applyState));
+    applyState();
+  });
+}
+
+function wireVacacionesAuto(t) {
+  return; // Trámite de Vacaciones deshabilitado
+  const ini = document.getElementById("f_fechaInicio");
+  const fin = document.getElementById("f_fechaFin");
+  if (!ini || !fin) return;
+  function recompute() {
+    if (ini.value && fin.value) {
+      const d1 = new Date(ini.value + "T00:00:00");
+      const d2 = new Date(fin.value + "T00:00:00");
+      const diff = Math.round((d2 - d1) / 86400000) + 1;
+      document.getElementById("f_totalDias").value = diff > 0 ? diff : "";
+      if (diff > 0) {
+        const ret = new Date(d2);
+        ret.setDate(ret.getDate() + 1);
+        document.getElementById("f_fechaRetorno").value = ret.toISOString().slice(0, 10);
+      }
+    }
+  }
+  ini.addEventListener("change", recompute);
+  fin.addEventListener("change", recompute);
+}
+
+/* ============================================================
+   GENERADOR DE FORMATO IMPRIMIBLE (facsímil del papel original)
+   ============================================================ */
+const LOGO_SRC = document.querySelector(".brand img").src;
+const MESES_LARGO = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const MESES_MIN = MESES_LARGO.map((m) => m.toLowerCase());
+
+function fechaLarga(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+function pfHeader(codigoDoc, mostrarRuc, logoHeight) {
+  const conRuc = mostrarRuc !== false;
+  const h = logoHeight || 56;
+  return `<div class="pf-header">
+    <div style="display:flex;flex-direction:column;">
+      <img src="${LOGO_SRC}" alt="La Calera" style="height:${h}px;">
+      ${conRuc ? `<div class="pf-ruc">RUC : 20452614767</div>` : ""}
+    </div>
+    ${codigoDoc ? `<div class="pf-doccode">${codigoDoc}</div>` : "<div></div>"}
+  </div>`;
+}
+function pfFirmas(labels) {
+  return `<div class="pf-firmas">${labels
+    .map((l) => `<div><div class="pf-firma-slot"></div><div class="pf-firma-line">${l}</div></div>`)
+    .join("")}</div>`;
+}
+
+function plantillaVacaciones(s) {
+  const c = s.campos;
+  const adelantoSi = c.adelanto === "Sí";
+  const adelantoTxt = `Adelanto: Si [${adelantoSi ? "X" : "&nbsp;"}]&nbsp;&nbsp;&nbsp;&nbsp;No [${adelantoSi ? "&nbsp;" : "X"}]${
+    adelantoSi ? `&nbsp;&nbsp;(S/. ${c.montoAdelanto || "0"})` : ""
+  }`;
+  return `<div class="pf">
+    <div class="pf-box">
+      <div style="padding:6px 8px 0;">${pfHeader("F/RR-HH")}</div>
+      <div class="pf-title">Solicitud de Vacaciones</div>
+      <div class="pf-subtitle">(D.Leg. N° 713)</div>
+      <div style="display:flex;">
+        <div style="background:#bfbfbf;font-weight:700;border:1px solid #111;padding:5px 8px;width:180px;font-size:11.5px;">Fecha de Emisión</div>
+        <div style="border:1px solid #111;border-left:none;padding:5px 8px;width:180px;font-size:11.5px;">${fechaLarga(s.fechaSolicitud)}</div>
+      </div>
+      <div class="pf-section">Datos del Trabajador</div>
+      <table class="pf-table">
+        <tr><td class="lbl" style="width:150px;">Nº DNI</td><td style="width:160px;">${s.colaborador.dni}</td><td class="lbl" style="width:150px;">Codigo SAP</td><td>${s.colaborador.codigo}</td></tr>
+        <tr><td class="lbl">Apellidos y Nombres</td><td colspan="3">${s.colaborador.nombre}</td></tr>
+        <tr><td class="lbl">Cargo</td><td style="width:160px;">${s.colaborador.cargo}</td><td colspan="2">&nbsp;</td></tr>
+        <tr><td class="lbl">Área</td><td colspan="3">${s.colaborador.area}</td></tr>
+        <tr><td class="lbl">Fecha de Ingreso</td><td colspan="3">${formatFecha(s.colaborador.ingreso)}</td></tr>
+      </table>
+      <div class="pf-section">Información Vacacional</div>
+      <table class="pf-table">
+        <tr><td class="lbl">Fecha de Inicio de Vacaciones</td><td style="width:160px;">${formatFecha(c.fechaInicio)}</td><td>&nbsp;</td></tr>
+        <tr><td class="lbl">Fecha de Termino de Vacaciones</td><td style="width:160px;">${formatFecha(c.fechaFin)}</td><td>&nbsp;</td></tr>
+        <tr><td class="lbl">Total de días del goce vacacional</td><td colspan="2">${c.totalDias}</td></tr>
+        <tr><td class="lbl">Fecha de Retorno</td><td colspan="2">${formatFecha(c.fechaRetorno)}</td></tr>
+        <tr><td class="lbl">Periodo Vacacional</td><td colspan="2">${c.periodo} &nbsp;&nbsp;&nbsp; ${adelantoTxt}</td></tr>
+      </table>
+      <div style="border:1px solid #111;border-top:none;height:13px;"></div>
+      <div class="pf-section">Autorizaciones</div>
+      <div class="pf-autorizaciones"></div>
+      <div class="pf-firmas-box">
+        <div>Firma del trabajador</div>
+        <div>V°.B° Jefe Inmediato</div>
+        <div>V°.B° Gestion Humana</div>
+      </div>
+    </div>
+    <div class="pf-footer">Folio: ${s.id}</div>
+  </div>`;
+}
+
+function plantillaAdelanto(s) {
+  const c = s.campos;
+  const tipo = s.tipo;
+  let cajaMarcada = "";
+  if (tipo === "sueldo") cajaMarcada = "Remuneración";
+  if (tipo === "gratificacion") cajaMarcada = c.gratificacionTipo === "Diciembre" ? "Gratificación Diciembre" : "Gratificación Julio";
+
+  const fechaBase = new Date(s.fechaSolicitud);
+  const mesInicio = (fechaBase.getMonth() + 1) % 12;
+  const nMeses = tipo === "gratificacion" ? 0 : parseInt(c.mesesAdelanto || "0") || 0;
+  const descuento = c.descuentoMensual || "";
+  const mesesMarcados = {};
+  for (let i = 0; i < nMeses && i < 12; i++) {
+    mesesMarcados[(mesInicio + i) % 12] = descuento;
+  }
+  // Grilla tal como el formato físico: 3 columnas x 4 filas (Ene-Abr / May-Ago / Sep-Dic)
+  const filasMeses = [
+    [0, 4, 8],
+    [1, 5, 9],
+    [2, 6, 10],
+    [3, 7, 11],
+  ];
+
+  const motivoTxt = c.motivo || "";
+  const mesesAdelantoTxt = tipo === "gratificacion" ? "" : c.mesesAdelanto || "";
+  const descuentoTxt = tipo === "gratificacion" ? "" : c.descuentoMensual || "";
+
+  return `<div class="pf">
+    ${pfHeader("ANEXO PER 003RRHH-2", false)}
+    <div class="pf-box">
+      <div class="pf-title-bar">SOLICITUD DE ADELANTO DE REMUNERACIONES<br>Y/O GRATIFICACIÓN</div>
+      <div class="pf-parrafo">Por medio de la presente solicito se me adelante de mi remuneración la suma consignada en el pesente formato y se efectúen los descuentos acorde a lo programado.</div>
+      <div class="pf-campos">
+        <div class="fila"><b>CODIGO / DNI</b><span>${s.colaborador.codigo} / ${s.colaborador.dni}</span><b style="margin-left:10px;">F. INGRESO</b><span>${formatFecha(s.colaborador.ingreso)}</span></div>
+        <div class="fila"><b>TRABAJADOR</b><span>${s.colaborador.nombre}</span></div>
+        <div class="fila"><b>AREA</b><span>${s.colaborador.area}</span></div>
+        <div class="fila"><b>MONTO A SOLICITAR</b><span>S/. ${c.monto}</span></div>
+        <div class="fila"><b>MOTIVO</b><span>${motivoTxt}</span></div>
+      </div>
+      <div class="pf-caja-cols">
+        <div class="pf-caja-grid">
+          <div class="pf-caja"><span>Remuneración</span><b>${cajaMarcada === "Remuneración" ? "☒" : "☐"}</b></div>
+          <div class="pf-caja"><span>Gratificación Julio</span><b>${cajaMarcada === "Gratificación Julio" ? "☒" : "☐"}</b></div>
+          <div class="pf-caja"><span>Gratificación Diciembre</span><b>${cajaMarcada === "Gratificación Diciembre" ? "☒" : "☐"}</b></div>
+        </div>
+        <div class="pf-cuotas">
+          <div class="pf-caja"><span>Meses de Adelanto / Cuotas</span><b>${mesesAdelantoTxt}</b></div>
+          <div class="pf-caja"><span>Descuento Mensual</span><b>S/. ${descuentoTxt}</b></div>
+        </div>
+      </div>
+      <div class="pf-mes-wrap"><table class="pf-mes-table">
+        ${filasMeses
+          .map(
+            (fila, i) => `<tr>
+          ${i === 0 ? `<td class="mes-side" rowspan="4">Cantidad a<br>Descontar</td>` : ""}
+          ${fila
+            .map(
+              (idx) =>
+                `<td class="mes-lbl">${MESES_LARGO[idx]}</td><td class="mes-box">${mesesMarcados[idx] !== undefined ? "S/." + mesesMarcados[idx] : ""}</td>`
+            )
+            .join("")}
+        </tr>`
+          )
+          .join("")}
+      </table></div>
+      <div class="pf-legal">En caso de no haber concluido el pago del adelanto que figura en el presente documento, autorizo se realice el descuento respectivo de mis beneficios sociales y demás ingresos que pudieran generarse por finalización de la relación laboral.</div>
+      ${pfFirmas(["FIRMA DEL<br>TRABAJADOR", "FIRMA DEL JEFE DE<br>AREA", "AUTORIZADO POR"])}
+    </div>
+    <div class="pf-footer">Folio: ${s.id}</div>
+  </div>`;
+}
+
+function plantillaCambioCuenta(s) {
+  const c = s.campos;
+  const hoy = new Date(s.fechaSolicitud);
+  return `<div class="pf">
+    <div style="margin-bottom:34px;">${pfHeader("", false, 76)}</div>
+    <div class="pf-title-plain">Constancia de Cambio de Banco</div>
+    <div class="pf-parrafo" style="padding:10px 0 16px;">Yo <b>${s.colaborador.nombre}</b>, identificada con DNI <b>${s.colaborador.dni}</b>, solicito cambio de banco para el depósito de mis haberes que percibo de su representada según detalle siguiente.</div>
+    <table class="pf-table">
+      <tr><td class="pf-bank-th">Nombre del banco</td><td class="pf-bank-th">Nro de cuenta</td></tr>
+      <tr><td style="height:34px;">${c.banco}</td><td>${c.numeroCuenta}</td></tr>
+    </table>
+    <div class="pf-plain-line" style="margin-top:34px;">Chincha, ${hoy.getDate()} de ${MESES_MIN[hoy.getMonth()]} del ${hoy.getFullYear()}.</div>
+    <div class="pf-plain-line" style="margin-top:230px;">Nombre: <span class="pf-line-fill">${s.colaborador.nombre}</span></div>
+    <div class="pf-plain-line">DNI &nbsp;&nbsp;: <span class="pf-line-fill">${s.colaborador.dni}</span></div>
+    <div class="pf-footer">Folio: ${s.id}</div>
+  </div>`;
+}
+
+function plantillaDJVivienda(s) {
+  const c = s.campos;
+  const hoy = new Date(s.fechaSolicitud);
+  return `<div class="pf pf-dj" style="page-break-before:always;">
+    <div style="margin-bottom:26px;">${pfHeader("", false, 62)}</div>
+    <div class="dj-title">DECLARACIÓN JURADA<br>PRESTAMO POR VIVIENDA</div>
+    <div class="dj-parrafo">Yo, <b>${s.colaborador.nombre}</b>, identificado (a) con Documento Nacional de Identidad (DNI) N.º <b>${s.colaborador.dni}</b>, con domicilio en <b>${c.domicilio || ""}</b>, y habiendo iniciado labores el día <b>${formatFecha(s.colaborador.ingreso)}</b>, declaro bajo juramento lo siguiente:</div>
+    <ol class="dj-list">
+      <li>La dirección que señalo líneas arriba es mi domicilio real, actual, efectivo y verdadero, donde tengo vivencia real, física y permanente; en caso de comprobarse falsedad alguna estoy sometiéndome a las sanciones contempladas en el Art. 427° del Código Penal.</li>
+      <li>Me comprometo a presentar las evidencias de las mejoras realizadas en mi vivienda, en un plazo máximo de tres (01) mes, contados a partir de la fecha en que se me otorgue el beneficio.</li>
+      <li>Que estoy en conocimiento y acepto que, de no cumplir con la presentación de dicha evidencia en el plazo establecido, el descuento correspondiente dejará de realizarse en cuotas mensuales y pasará a ser descontado en una única armada del monto total pendiente, en la boleta de pago inmediata posterior al vencimiento del plazo.</li>
+      <li>Que esta declaración se emite de forma voluntaria, en pleno uso de mis facultades, y con conocimiento de las consecuencias que implica su incumplimiento.</li>
+    </ol>
+    <div class="dj-parrafo" style="margin-top:22px;">En fe de lo declarado, firmo la presente</div>
+    <div class="dj-firma-row">
+      <div class="dj-huella">
+        <div class="dj-huella-box"></div>
+        <div class="dj-huella-label">Huella Digital</div>
+      </div>
+      <div class="dj-fecha-firma">
+        <div class="dj-fecha">Chincha, ${hoy.getDate()} de ${MESES_MIN[hoy.getMonth()]} del ${hoy.getFullYear()}</div>
+        <div class="dj-firma-slot"></div>
+        <div class="dj-firma-line">Firma del colaborador</div>
+      </div>
+    </div>
+    <div class="dj-footer">
+      <div>
+        <b>Sede Chincha</b><br>
+        Fundo la Calera s/n Alto Laran<br>
+        Distrito de Alto Laran - Chincha &nbsp;<b>www.lacalera.pe</b>
+      </div>
+      <div style="text-align:right;">
+        <b>Atención al cliente</b><br>
+        atencionalcliente@lacalera.pe (+511)<br>
+        4177300
+      </div>
+    </div>
+  </div>`;
+}
+
+function plantillaAnexoFotos(s) {
+  const fotos = (s.campos.fotosEvidenciaData || []).filter((f) => f && f.url);
+  if (!fotos.length) return "";
+  return `<div class="pf pf-anexo" style="page-break-before:always;">
+    <div style="margin-bottom:22px;">${pfHeader("", false, 56)}</div>
+    <div class="anexo-title">Anexo: Fotos / Evidencias de Sustento</div>
+    <div class="anexo-sub">Solicitud ${s.id} · ${s.colaborador.nombre}</div>
+    <div class="anexo-grid">
+      ${fotos
+        .map(
+          (f) => `<div class="anexo-item"><img src="${f.url}" alt="${f.name}"><div class="anexo-cap">${f.name}</div></div>`
+        )
+        .join("")}
+    </div>
+  </div>`;
+}
+
+function construirPrintable(s) {
+  if (s.tipo === "vacaciones") return plantillaVacaciones(s);
+  if (s.tipo === "cambio_cuenta") return plantillaCambioCuenta(s);
+  if (s.tipo === "prestamo") {
+    let out = plantillaAdelanto(s) + plantillaAnexoFotos(s);
+    if (s.campos.tipoPrestamo === "Vivienda") out += plantillaDJVivienda(s);
+    return out;
+  }
+  return plantillaAdelanto(s);
+}
+
+function imprimirSolicitud(id) {
+  const s = solicitudes.find((x) => x.id === id);
+  if (!s) {
+    toast("No se encontró la solicitud.");
+    return;
+  }
+  document.getElementById("printArea").innerHTML = construirPrintable(s);
+  window.print();
+}
+
+/* ============================================================
+   ENVÍO DE SOLICITUD
+   ============================================================ */
+async function comprimirImagen(file, maxAncho = 1100, calidad = 0.78) {
+  // 1) Siempre obtenemos primero el dataURL original (garantizado, sin canvas de por medio)
+  const dataUrlOriginal = await new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(file);
+  });
+  if (!dataUrlOriginal) return null;
+
+  // 2) Intentamos comprimir vía canvas; si algo falla, nos quedamos con el original (nunca se pierde la imagen)
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error("decode-fail"));
+      image.src = dataUrlOriginal;
+    });
+    if (!img.width || img.width <= maxAncho) return dataUrlOriginal;
+    const escala = maxAncho / img.width;
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(img.width * escala));
+    canvas.height = Math.max(1, Math.round(img.height * escala));
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const comprimida = canvas.toDataURL("image/jpeg", calidad);
+    return comprimida && comprimida.length > 100 ? comprimida : dataUrlOriginal;
+  } catch (e) {
+    console.error("No se pudo comprimir la imagen, se usará el original", e);
+    return dataUrlOriginal;
+  }
+}
+
+async function enviarSolicitud(t) {
+  const form = document.getElementById("dynForm");
+  const formData = new FormData(form);
+  const campos = {};
+  for (const f of t.fields) {
+    if (f.type === "file") {
+      const files = formData.getAll(f.id).filter((x) => x && x.name && x.size > 0);
+      campos[f.id] = files.map((x) => x.name).join(", ");
+      if (files.length) {
+        const btnPre = document.getElementById("btnEnviarForm");
+        if (btnPre) btnPre.textContent = "Procesando fotos...";
+        const dataUrls = [];
+        for (const file of files) {
+          const url = await comprimirImagen(file);
+          if (url) dataUrls.push({ name: file.name, url });
+        }
+        campos[f.id + "Data"] = dataUrls;
+      } else {
+        campos[f.id + "Data"] = [];
+      }
+    } else {
+      campos[f.id] = formData.get(f.id) || "";
+    }
+  }
+
+  const btn = document.getElementById("btnEnviarForm");
+  btn.disabled = true;
+  btn.textContent = "Generando...";
+
+  const folio = generarFolio(t.folioCode);
+  const registro = {
+    id: folio,
+    tipo: tramiteActual,
+    tipoNombre: t.nombre,
+    fechaSolicitud: new Date().toISOString(),
+    estado: "pendiente",
+    comentarioRRHH: "",
+    colaborador: {
+      codigo: empleadoActual.codigo,
+      dni: empleadoActual.DNI,
+      nombre: nombreCompleto(empleadoActual),
+      cargo: empleadoActual.cargo,
+      area: empleadoActual.area,
+      ingreso: empleadoActual.ingreso,
+    },
+    campos,
+  };
+
+  await cargarSolicitudes();
+  solicitudes.push(registro);
+  const ok = await guardarSolicitud(registro);
+
+  btn.disabled = false;
+  btn.textContent = "Continuar y generar formato";
+
+  if (!ok) {
+    toast("Ocurrió un error al guardar. Revisa la consola del navegador (F12) para más detalle.");
+    return;
+  }
+
+  ultimoFolioId = folio;
+  document.getElementById("card-form").style.display = "none";
+  document.getElementById("card-tramite").style.display = "none";
+  document.getElementById("card-confirm").style.display = "block";
+  document.getElementById("folioText").textContent = folio;
+  document.getElementById("card-confirm").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function generarFolio(code) {
+  const n = Math.floor(1000 + Math.random() * 9000);
+  const d = new Date();
+  const ymd = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+  return `GAF-${code}-${ymd}-${n}`;
+}
+
+document.getElementById("btnNuevaSolicitud").addEventListener("click", () => {
+  document.getElementById("card-confirm").style.display = "none";
+  document.getElementById("card-tramite").style.display = "block";
+  document.querySelectorAll(".tramite-card").forEach((b) => b.classList.remove("selected"));
+  tramiteActual = null;
+});
+document.getElementById("btnDescargarPDF").addEventListener("click", () => {
+  if (ultimoFolioId) imprimirSolicitud(ultimoFolioId);
+});
+
+/* ============================================================
+   VISTA ADMINISTRADOR
+   ============================================================ */
+function renderAdmin() { pintarBase(); }
+
+/* ---------- Modal detalle ---------- */
+function fieldLabel(tipo, fieldId) {
+  const def = TRAMITES[tipo].fields.find((f) => f.id === fieldId);
+  return def ? def.label : fieldId;
+}
+
+function cerrarModal() {
+  document.getElementById("modalOverlay").classList.remove("show");
+}
+document.getElementById("modalClose").addEventListener("click", cerrarModal);
+document.getElementById("modalOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "modalOverlay") cerrarModal();
+});
+
+/* ============================================================
+   BASE DE COLABORADORES · Importación Excel / CSV
+   ============================================================ */
+const SHEETJS_URL = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+let sheetjsPromise = null;
+function cargarSheetJS() {
+  if (window.XLSX) return Promise.resolve(window.XLSX);
+  if (!sheetjsPromise) {
+    sheetjsPromise = new Promise((res, rej) => {
+      const s = document.createElement("script");
+      s.src = SHEETJS_URL;
+      s.onload = () => (window.XLSX ? res(window.XLSX) : rej(new Error("XLSX no disponible")));
+      s.onerror = () => { sheetjsPromise = null; s.remove(); rej(new Error("Sin conexión")); };
+      document.head.appendChild(s);
+    });
+  }
+  return sheetjsPromise;
+}
+
+function esc(v) {
+  return String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function hoyISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+function descargarBlob(contenido, tipo, nombre) {
+  const blob = contenido instanceof Blob ? contenido : new Blob([contenido], { type: tipo });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nombre;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+/* ---------- Lectura de archivos ---------- */
+function parseCSV(text) {
+  text = text.replace(/^﻿/, "");
+  const primera = text.split(/\r?\n/).find((l) => l.trim()) || "";
+  const sep = [";", ",", "\t"].reduce((a, b) => (primera.split(b).length > primera.split(a).length ? b : a));
+  const rows = [];
+  let row = [], cell = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { cell += '"'; i++; } else q = false;
+      } else cell += c;
+    } else if (c === '"') q = true;
+    else if (c === sep) { row.push(cell); cell = ""; }
+    else if (c === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+    else if (c !== "\r") cell += c;
+  }
+  if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+  return rows;
+}
+
+async function leerArchivoFilas(file) {
+  const buf = await file.arrayBuffer();
+  if (/\.csv$|\.txt$/i.test(file.name)) {
+    let txt = new TextDecoder("utf-8").decode(buf);
+    if (txt.includes("�")) txt = new TextDecoder("windows-1252").decode(buf); // CSV guardado por Excel (ANSI)
+    return parseCSV(txt);
+  }
+  let XLSX;
+  try {
+    XLSX = await cargarSheetJS();
+  } catch (e) {
+    throw new Error("Para leer archivos Excel (.xlsx) se necesita conexión a internet. Sin conexión, guarda el archivo como CSV (Archivo › Guardar como › CSV) e impórtalo.");
+  }
+  const wb = XLSX.read(buf, { type: "array" });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  return XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: "" });
+}
+
+/* ---------- Reconocimiento de columnas ---------- */
+const SINONIMOS = {
+  codigo: ["codigo", "cod", "codtrabajador", "codigotrabajador", "codigoempleado", "codempleado", "codigocolaborador", "codpersonal", "codigosap", "nrocodigo", "idempleado", "nropersonal"],
+  DNI: ["dni", "nrodni", "numerodni", "ndni", "documento", "nrodocumento", "numerodocumento", "ndocumento", "nrodoc", "numdoc", "doc", "documentoidentidad", "nrodocumentoidentidad"],
+  Nombres: ["nombres", "nombre", "primernombre"],
+  apPat: ["apellidopaterno", "appaterno", "apepaterno", "apepat", "appat", "paterno", "primerapellido"],
+  apMat: ["apellidomaterno", "apmaterno", "apematerno", "apemat", "apmat", "materno", "segundoapellido"],
+  apellidos: ["apellidos"],
+  nombreCompleto: ["apellidosynombres", "apellidosnombres", "nombrecompleto", "nombresyapellidos", "trabajador", "colaborador", "empleado"],
+  cargo: ["cargo", "puesto", "posicion", "descripcioncargo", "desccargo", "descpuesto", "nombrecargo", "nombrepuesto"],
+  area: ["area", "areas", "descarea", "descripcionarea", "nombrearea", "unidad", "unidadorganizativa", "departamento", "seccion"],
+  ingreso: ["fechaingreso", "fechadeingreso", "fingreso", "fecingreso", "fecingr", "ingreso", "fechaalta", "fechainicio", "fechadeinicio"],
+};
+const REGLAS_PARCIALES = {
+  DNI: (n) => n.includes("dni"),
+  nombreCompleto: (n) => n.includes("apellido") && n.includes("nombre"),
+  apPat: (n) => n.includes("paterno"),
+  apMat: (n) => n.includes("materno"),
+  cargo: (n) => n.includes("cargo") || n.includes("puesto"),
+  area: (n) => n.startsWith("area"),
+  ingreso: (n) => n.includes("ingreso"),
+  codigo: (n) => n.startsWith("codigo") || n.startsWith("cod"),
+};
+function normHeader(h) {
+  return String(h ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+function mapearColumnas(fila) {
+  const map = {};
+  const usadas = new Set();
+  const norm = fila.map(normHeader);
+  norm.forEach((n, i) => {
+    if (!n) return;
+    for (const [k, lista] of Object.entries(SINONIMOS)) {
+      if (map[k] === undefined && lista.includes(n)) { map[k] = i; usadas.add(i); break; }
+    }
+  });
+  for (const [k, regla] of Object.entries(REGLAS_PARCIALES)) {
+    if (map[k] !== undefined) continue;
+    const i = norm.findIndex((n, idx) => n && !usadas.has(idx) && regla(n));
+    if (i >= 0) { map[k] = i; usadas.add(i); }
+  }
+  return map;
+}
+
+/* ---------- Normalización de valores ---------- */
+const CONECTORES = ["de", "del", "la", "las", "los", "y", "e", "da", "do", "dos", "van", "von"];
+function titulo(s) {
+  s = String(s ?? "").trim().replace(/\s+/g, " ");
+  if (!s || s !== s.toUpperCase()) return s; // solo convierte si viene TODO EN MAYÚSCULAS
+  return s.toLowerCase().split(" ")
+    .map((w, i) => (i > 0 && CONECTORES.includes(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)))
+    .join(" ");
+}
+function ymd(y, m, d) {
+  y = +y; m = +m; d = +d;
+  if (!y || m < 1 || m > 12 || d < 1 || d > 31) return null;
+  return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+function aISO(v) {
+  if (v === "" || v == null) return "";
+  if (typeof v === "number") {
+    if (v < 1000) return null;
+    return new Date(Math.round((v - 25569) * 86400000)).toISOString().slice(0, 10); // fecha serial de Excel
+  }
+  const s = String(v).trim();
+  let m;
+  if ((m = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/))) return ymd(m[1], m[2], m[3]);
+  if ((m = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/))) {
+    let y = m[3];
+    if (y.length === 2) y = (Number(y) > 50 ? "19" : "20") + y;
+    return ymd(y, m[2], m[1]); // formato peruano dd/mm/aaaa
+  }
+  if (/^\d{5}$/.test(s)) return aISO(Number(s));
+  return null;
+}
+function partirNombreCompleto(s) {
+  s = String(s ?? "").trim().replace(/\s+/g, " ");
+  if (s.includes(",")) {
+    const [ap, nom] = s.split(/,(.*)/s);
+    const p = ap.trim().split(" ");
+    return { apPat: p[0] || "", apMat: p.slice(1).join(" "), Nombres: (nom || "").trim() };
+  }
+  const p = s.split(" ");
+  return { apPat: p[0] || "", apMat: p[1] || "", Nombres: p.slice(2).join(" ") };
+}
+
+/* ---------- Conversión filas → colaboradores ---------- */
+function procesarFilas(filas) {
+  let hIdx = -1, map = null;
+  for (let i = 0; i < Math.min(filas.length, 25); i++) {
+    const m = mapearColumnas(filas[i] || []);
+    if (m.DNI !== undefined && (m.Nombres !== undefined || m.nombreCompleto !== undefined || m.apellidos !== undefined)) { hIdx = i; map = m; break; }
+  }
+  if (hIdx < 0) {
+    throw new Error("No se encontraron los encabezados. El archivo debe tener al menos las columnas DNI y Nombres (o Apellidos y Nombres). Descarga la plantilla para ver el formato.");
+  }
+
+  const cols = new Set();
+  ["codigo", "cargo", "area", "ingreso", "Nombres", "apPat", "apMat"].forEach((k) => { if (map[k] !== undefined) cols.add(k); });
+  if (map.apellidos !== undefined) { cols.add("apPat"); cols.add("apMat"); }
+  if (map.nombreCompleto !== undefined) { cols.add("Nombres"); cols.add("apPat"); cols.add("apMat"); }
+
+  const faltantes = [];
+  if (!cols.has("cargo")) faltantes.push("Cargo");
+  if (!cols.has("area")) faltantes.push("Área");
+
+  const validas = [], errores = [], avisos = [];
+  const vistos = new Map();
+  for (let i = hIdx + 1; i < filas.length; i++) {
+    const r = filas[i] || [];
+    if (r.every((c) => String(c ?? "").trim() === "")) continue;
+    const nFila = i + 1;
+    const get = (k) => (map[k] === undefined ? "" : r[map[k]]);
+
+    const dniRaw = String(get("DNI") ?? "").replace(/\D/g, "");
+    const emp = {
+      codigo: normCodigo(get("codigo")),
+      DNI: normDNI(dniRaw),
+      Nombres: titulo(get("Nombres")),
+      apPat: titulo(get("apPat")),
+      apMat: titulo(get("apMat")),
+      cargo: String(get("cargo") ?? "").trim().replace(/\s+/g, " ").toUpperCase(),
+      area: String(get("area") ?? "").trim().replace(/\s+/g, " "),
+      ingreso: "",
+    };
+    if (map.apellidos !== undefined && !emp.apPat) {
+      const p = titulo(get("apellidos")).split(" ");
+      emp.apPat = p[0] || "";
+      emp.apMat = p.slice(1).join(" ");
+    }
+    if (map.nombreCompleto !== undefined && (!emp.Nombres || !emp.apPat)) {
+      const p = partirNombreCompleto(titulo(get("nombreCompleto")));
+      emp.Nombres = emp.Nombres || p.Nombres;
+      emp.apPat = emp.apPat || p.apPat;
+      emp.apMat = emp.apMat || p.apMat;
+      if (!String(get("nombreCompleto")).includes(",")) avisos.push(`Fila ${nFila}: nombre separado automáticamente (${emp.apPat} / ${emp.apMat} / ${emp.Nombres}). Verifica apellidos compuestos.`);
+    }
+    const fIng = aISO(get("ingreso"));
+    if (fIng === null) avisos.push(`Fila ${nFila}: fecha de ingreso no reconocida ("${get("ingreso")}"). Se deja sin cambio.`);
+    else emp.ingreso = fIng;
+
+    const prob = [];
+    if (!dniRaw) prob.push("sin DNI");
+    else if (dniRaw.length < 7) prob.push(`DNI incompleto (${dniRaw})`);
+    else if (dniRaw.length > 8) prob.push(`documento de ${dniRaw.length} dígitos (no es DNI)`);
+    if (!emp.Nombres) prob.push("sin nombres");
+    if (!emp.apPat) prob.push("sin apellido paterno");
+    if (prob.length) {
+      errores.push(`Fila ${nFila}: ${prob.join(", ")}${emp.Nombres || emp.apPat ? " — " + [emp.Nombres, emp.apPat].join(" ").trim() : ""}`);
+      continue;
+    }
+    if (vistos.has(emp.DNI)) avisos.push(`Fila ${nFila}: DNI ${emp.DNI} repetido en el archivo (también en fila ${vistos.get(emp.DNI)}). Se usa esta última fila.`);
+    vistos.set(emp.DNI, nFila);
+    validas.push(emp);
+  }
+  // si hay DNI repetidos, quedarse con la última aparición
+  const unicas = [...new Map(validas.map((e) => [e.DNI, e])).values()];
+  return { filas: unicas, cols, errores, avisos, faltantes };
+}
+
+/* ---------- Comparación con la base actual ---------- */
+function calcularCambios(imp, modo) {
+  const porDNI = new Map(EMPLEADOS.map((e) => [e.DNI, e]));
+  const resultado = new Map(EMPLEADOS.map((e) => [e.DNI, { ...e }]));
+  const altas = [], cambios = [], iguales = [], incompletos = [];
+  for (const emp of imp.filas) {
+    const ex = porDNI.get(emp.DNI);
+    if (!ex) {
+      altas.push(emp);
+      resultado.set(emp.DNI, emp);
+      if (!emp.cargo || !emp.area) incompletos.push(emp);
+      continue;
+    }
+    const merged = { ...ex };
+    const dif = [];
+    for (const k of CAMPOS_EMP) {
+      if (!imp.cols.has(k)) continue;
+      const nv = emp[k];
+      if (nv === "" || nv == null) continue; // celda vacía: no borra el dato existente
+      if (String(nv) !== String(ex[k] ?? "")) {
+        dif.push({ k, antes: ex[k], despues: nv });
+        merged[k] = nv;
+      }
+    }
+    if (dif.length) { cambios.push({ emp: merged, dif }); resultado.set(emp.DNI, merged); }
+    else iguales.push(ex);
+  }
+  let bajas = [];
+  if (modo === "reemplazar") {
+    const enArchivo = new Set(imp.filas.map((e) => e.DNI));
+    bajas = EMPLEADOS.filter((e) => !enArchivo.has(e.DNI));
+    bajas.forEach((b) => resultado.delete(b.DNI));
+  }
+  return { altas, cambios, iguales, bajas, incompletos, resultado: [...resultado.values()] };
+}
+
+/* ---------- Vista previa (modal) ---------- */
+let importPendiente = null;
+
+function nomEmp(e) {
+  return `${e.apPat} ${e.apMat}, ${e.Nombres}`.replace(/\s+,/, ",");
+}
+
+function renderVistaPrevia(modo) {
+  const imp = importPendiente;
+  const r = calcularCambios(imp, modo);
+  const pctBajas = EMPLEADOS.length ? r.bajas.length / EMPLEADOS.length : 0;
+  const bajasMasivas = modo === "reemplazar" && pctBajas > 0.3;
+  const hayCambios = r.altas.length + r.cambios.length + r.bajas.length > 0;
+
+  const lista = (items, fn) => `<div class="imp-list">${items.map(fn).join("")}</div>`;
+  const bloque = (titulo, n, contenido, abierto) =>
+    n ? `<details class="imp"${abierto ? " open" : ""}><summary>${titulo} (${n})</summary>${contenido}</details>` : "";
+
+  document.getElementById("modalBody").innerHTML = `
+    <p class="subtitle" style="margin-bottom:12px;">Archivo: <b>${esc(imp.nombreArchivo)}</b> · ${imp.filas.length} colaborador(es) válidos leídos.</p>
+    ${imp.faltantes.length ? `<div class="imp-alert">El archivo no tiene columna de <b>${imp.faltantes.join(" ni ")}</b>. Los ingresos nuevos quedarán sin ese dato.</div>` : ""}
+    <div class="imp-modo">
+      <label><input type="radio" name="impModo" value="agregar" ${modo === "agregar" ? "checked" : ""}>
+        <span><b>Agregar nuevos y actualizar existentes</b><br><small>Recomendado para ingresos del mes. Nadie se elimina de la base.</small></span></label>
+      <label><input type="radio" name="impModo" value="reemplazar" ${modo === "reemplazar" ? "checked" : ""}>
+        <span><b>Reemplazar toda la base (planilla completa)</b><br><small>Quien no figure en el archivo se retira del portal (ceses).</small></span></label>
+    </div>
+    <div class="imp-stats">
+      <div class="imp-stat"><div class="num" style="color:var(--verde-txt);">${r.altas.length}</div><div class="lbl">Ingresos nuevos</div></div>
+      <div class="imp-stat"><div class="num" style="color:var(--ambar);">${r.cambios.length}</div><div class="lbl">Con cambios</div></div>
+      <div class="imp-stat"><div class="num">${r.iguales.length}</div><div class="lbl">Sin cambios</div></div>
+      ${modo === "reemplazar" ? `<div class="imp-stat"><div class="num" style="color:var(--rojo);">${r.bajas.length}</div><div class="lbl">Se retiran</div></div>` : ""}
+      ${imp.errores.length ? `<div class="imp-stat"><div class="num" style="color:var(--rojo);">${imp.errores.length}</div><div class="lbl">Filas con error</div></div>` : ""}
+    </div>
+    ${bloque("Ingresos nuevos", r.altas.length, lista(r.altas, (e) => `<div><b>${esc(nomEmp(e))}</b> · DNI ${esc(e.DNI)}<br><span class="muted">${esc(e.cargo || "— sin cargo —")} · ${esc(e.area || "— sin área —")}${e.ingreso ? " · Ingreso " + formatFecha(e.ingreso) : ""}</span></div>`), true)}
+    ${bloque("Con cambios", r.cambios.length, lista(r.cambios, (c) => `<div><b>${esc(nomEmp(c.emp))}</b> · DNI ${esc(c.emp.DNI)}<br>${c.dif.map((d) => `<span class="muted">${ETIQUETA_CAMPO[d.k]}:</span> ${esc(d.k === "ingreso" ? formatFecha(d.antes) : d.antes || "—")} → <b>${esc(d.k === "ingreso" ? formatFecha(d.despues) : d.despues)}</b>`).join("<br>")}</div>`), r.altas.length === 0)}
+    ${modo === "reemplazar" ? bloque("Se retiran del portal", r.bajas.length, lista(r.bajas, (e) => `<div><b>${esc(nomEmp(e))}</b> · DNI ${esc(e.DNI)}<br><span class="muted">${esc(e.cargo)} · ${esc(e.area)}</span></div>`), bajasMasivas) : ""}
+    ${bloque("Filas con error (no se importan)", imp.errores.length, lista(imp.errores, (t) => `<div>${esc(t)}</div>`), false)}
+    ${bloque("Avisos", imp.avisos.length, lista(imp.avisos, (t) => `<div>${esc(t)}</div>`), false)}
+    ${bajasMasivas ? `<div class="imp-alert imp-alert-rojo">Se retirarían <b>${r.bajas.length} de ${EMPLEADOS.length}</b> colaboradores (${Math.round(pctBajas * 100)}%). Si solo querías cargar ingresos nuevos, elige “Agregar nuevos”.
+        <label style="display:flex;gap:8px;margin-top:8px;cursor:pointer;"><input type="checkbox" id="impConfirmBajas"> Sí, el archivo es la planilla completa y quiero retirarlos.</label></div>` : ""}
+    <div class="status-actions">
+      <button class="btn btn-primary btn-sm" id="btnAplicarImport" ${hayCambios ? "" : "disabled"}>${hayCambios ? "Aplicar cambios" : "No hay cambios que aplicar"}</button>
+      <button class="btn btn-ghost btn-sm" id="btnCancelarImport">Cancelar</button>
+    </div>
+  `;
+
+  document.querySelectorAll('input[name="impModo"]').forEach((el) =>
+    el.addEventListener("change", () => renderVistaPrevia(el.value))
+  );
+  document.getElementById("btnCancelarImport").addEventListener("click", cerrarModal);
+  const btnAplicar = document.getElementById("btnAplicarImport");
+  const chk = document.getElementById("impConfirmBajas");
+  if (chk) {
+    btnAplicar.disabled = true;
+    chk.addEventListener("change", () => (btnAplicar.disabled = !chk.checked));
+  }
+  btnAplicar.addEventListener("click", () => aplicarImportacion(r));
+}
+
+function aplicarImportacion(r) {
+  EMPLEADOS = r.resultado;
+  EMPLEADOS_FECHA_ACTUAL = new Date().toISOString();
+  EMPLEADOS_ORIGEN = "local";
+  let guardado = true;
+  try {
+    localStorage.setItem(LS_EMP, JSON.stringify({ fecha: EMPLEADOS_FECHA_ACTUAL, lista: EMPLEADOS }));
+  } catch (e) {
+    guardado = false;
+  }
+  importPendiente = null;
+  cerrarModal();
+  pintarBase();
+  const partes = [];
+  if (r.altas.length) partes.push(`${r.altas.length} nuevo(s)`);
+  if (r.cambios.length) partes.push(`${r.cambios.length} actualizado(s)`);
+  if (r.bajas.length) partes.push(`${r.bajas.length} retirado(s)`);
+  toast(guardado ? `Base actualizada: ${partes.join(", ")}.` : "Base actualizada solo mientras esta pestaña esté abierta. Descarga el HTML actualizado.");
+}
+
+async function iniciarImportacion(file) {
+  try {
+    toast("Leyendo archivo...");
+    const filas = await leerArchivoFilas(file);
+    const imp = procesarFilas(filas);
+    if (!imp.filas.length) throw new Error("No se encontraron filas válidas en el archivo." + (imp.errores.length ? " Revisa: " + imp.errores.slice(0, 3).join(" | ") : ""));
+    imp.nombreArchivo = file.name;
+    importPendiente = imp;
+    document.getElementById("modalPill").className = "pill pill-pendiente";
+    document.getElementById("modalPill").textContent = "Vista previa";
+    document.getElementById("modalTitle").textContent = "Importar colaboradores";
+    renderVistaPrevia("agregar");
+    document.getElementById("modalOverlay").classList.add("show");
+  } catch (e) {
+    console.error(e);
+    alert(e.message || "No se pudo leer el archivo.");
+  }
+}
+
+/* ---------- Exportaciones ---------- */
+const COLS_PLANTILLA = ["Codigo", "DNI", "Nombres", "Apellido Paterno", "Apellido Materno", "Cargo", "Area", "Fecha Ingreso"];
+function empAFila(e) {
+  return [e.codigo, e.DNI, e.Nombres, e.apPat, e.apMat, e.cargo, e.area, e.ingreso ? formatFecha(e.ingreso) : ""];
+}
+async function descargarTabla(filas, nombreBase) {
+  try {
+    const XLSX = await cargarSheetJS();
+    const ws = XLSX.utils.aoa_to_sheet(filas);
+    ws["!cols"] = [8, 11, 24, 18, 18, 38, 38, 13].map((w) => ({ wch: w }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Colaboradores");
+    XLSX.writeFile(wb, nombreBase + ".xlsx");
+  } catch (e) {
+    // Sin internet: se descarga en CSV (se abre igual en Excel)
+    const csv = filas.map((r) => r.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(";")).join("\r\n");
+    descargarBlob("﻿" + csv, "text/csv;charset=utf-8;", nombreBase + ".csv");
+  }
+}
+function descargarPlantilla() {
+  descargarTabla([COLS_PLANTILLA], "Plantilla_Ingresos_GAF");
+}
+function exportarBase() {
+  const orden = EMPLEADOS.slice().sort((a, b) => a.area.localeCompare(b.area) || a.apPat.localeCompare(b.apPat));
+  descargarTabla([COLS_PLANTILLA, ...orden.map(empAFila)], "Base_Colaboradores_GAF_" + hoyISO());
+}
+function descargarHTMLActualizado() {
+  const ini = "/*EMPLEADOS_" + "INICIO*/";
+  const fin = "/*EMPLEADOS_" + "FIN*/";
+  const a = HTML_ORIGINAL.indexOf(ini);
+  const b = HTML_ORIGINAL.indexOf(fin);
+  if (a < 0 || b < a) {
+    alert("No se pudo generar el archivo actualizado (no se encontró el bloque de datos).");
+    return;
+  }
+  const datos = JSON.stringify(EMPLEADOS).replace(/</g, "\\u003c");
+  const bloque = `${ini}\nconst MODO_PUBLICO = false;\nconst EMPLEADOS_CIFRADO = null;\nconst EMPLEADOS_FECHA = ${JSON.stringify(EMPLEADOS_FECHA_ACTUAL)};\nconst EMPLEADOS_BASE = ${datos};\n`;
+  const html = HTML_ORIGINAL.slice(0, a) + bloque + HTML_ORIGINAL.slice(b);
+  descargarBlob(html, "text/html;charset=utf-8", "Portal_GAF_ADMINISTRADOR.html");
+  toast("Archivo de administrador guardado. Reemplaza tu archivo anterior por este.");
+}
+function descartarCambiosLocales() {
+  if (!confirm("¿Descartar los cambios importados en este navegador y volver a la base original del archivo?")) return;
+  try { localStorage.removeItem(LS_EMP); } catch (e) {}
+  EMPLEADOS = EMPLEADOS_BASE.map(normalizarEmp);
+  EMPLEADOS_FECHA_ACTUAL = EMPLEADOS_FECHA;
+  EMPLEADOS_ORIGEN = "archivo";
+  pintarBase();
+  toast("Se restauró la base original del archivo.");
+}
+
+function pintarBase() {
+  const info = document.getElementById("baseInfo");
+  if (!info) return;
+  const fecha = new Date(EMPLEADOS_FECHA_ACTUAL);
+  const fechaTxt = isNaN(fecha) ? "-" : fecha.toLocaleString("es-PE", { dateStyle: "short", timeStyle: "short" });
+  const nAreas = new Set(EMPLEADOS.map((e) => e.area)).size;
+  info.innerHTML = `<b>${EMPLEADOS.length}</b> colaboradores en ${nAreas} áreas · Última actualización: ${fechaTxt}`;
+  const aviso = document.getElementById("baseAviso");
+  if (EMPLEADOS_ORIGEN === "local") {
+    aviso.style.display = "flex";
+    aviso.innerHTML = `<span>Hay cambios importados guardados <b>solo en este navegador</b>. Guarda el archivo de administrador actualizado para no perderlos y luego genera el index.html para publicar.</span>
+      <span style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" id="btnHTMLAct">Guardar archivo de administrador</button>
+        <button class="btn btn-ghost btn-sm" id="btnDescartarBase">Descartar cambios</button>
+      </span>`;
+    document.getElementById("btnHTMLAct").addEventListener("click", descargarHTMLActualizado);
+    document.getElementById("btnDescartarBase").addEventListener("click", descartarCambiosLocales);
+  } else {
+    aviso.style.display = "none";
+    aviso.innerHTML = "";
+  }
+}
+
+/* ---------- Generar versión pública (index.html para GitHub) ---------- */
+const ITER_PUBLICO = 150000;
+function quitarBloquesAdmin(html) {
+  const a = "<!--SOLO_ADMIN_" + "INICIO-->", b = "<!--SOLO_ADMIN_" + "FIN-->";
+  let out = html, i;
+  while ((i = out.indexOf(a)) >= 0) {
+    const j = out.indexOf(b, i);
+    if (j < 0) break;
+    out = out.slice(0, i) + out.slice(j + b.length);
+  }
+  return out;
+}
+function reemplazarBloqueDatos(html, bloque) {
+  const ini = "/*EMPLEADOS_" + "INICIO*/", fin = "/*EMPLEADOS_" + "FIN*/";
+  const a = html.indexOf(ini), b = html.indexOf(fin);
+  if (a < 0 || b < a) throw new Error("No se encontró el bloque de datos.");
+  return html.slice(0, a) + ini + "\n" + bloque + html.slice(b);
+}
+async function generarPublico() {
+  const btn = document.getElementById("btnGenerarPublico");
+  if (!window.crypto || !crypto.subtle) {
+    alert("Este navegador no permite cifrar. Abre el archivo en Chrome o Edge actualizado.");
+    return;
+  }
+  const validos = EMPLEADOS.filter((e) => /^\d{8}$/.test(e.DNI));
+  const omitidos = EMPLEADOS.length - validos.length;
+  btn.disabled = true;
+  try {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const items = [];
+    for (let k = 0; k < validos.length; k++) {
+      btn.textContent = `Cifrando ${k + 1} de ${validos.length}...`;
+      const emp = validos[k];
+      const { id, key } = await derivarClave(emp.DNI, salt, ITER_PUBLICO);
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, _enc.encode(JSON.stringify(emp)));
+      items.push({ i: id, v: _b64(iv), c: _b64(ct) });
+    }
+    for (let k = items.length - 1; k > 0; k--) { const r = Math.floor(Math.random() * (k + 1)); [items[k], items[r]] = [items[r], items[k]]; }
+    const cifrado = { salt: _b64(salt), iter: ITER_PUBLICO, items };
+    const bloque =
+      "const MODO_PUBLICO = true;\n" +
+      "const EMPLEADOS_CIFRADO = " + JSON.stringify(cifrado) + ";\n" +
+      "const EMPLEADOS_FECHA = " + JSON.stringify(EMPLEADOS_FECHA_ACTUAL) + ";\n" +
+      "const EMPLEADOS_BASE = [];\n";
+    let html = reemplazarBloqueDatos(HTML_ORIGINAL, bloque);
+    html = quitarBloquesAdmin(html);
+    descargarBlob(html, "text/html;charset=utf-8", "index.html");
+    toast(`index.html generado con ${items.length} colaboradores.` + (omitidos ? ` ${omitidos} sin DNI de 8 dígitos no se incluyeron.` : ""));
+  } catch (e) {
+    console.error(e);
+    alert("No se pudo generar el archivo: " + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Generar index.html para GitHub";
+  }
+}
+
+if (!MODO_PUBLICO) {
+  document.getElementById("btnImportarBase").addEventListener("click", () => document.getElementById("fileImportBase").click());
+  document.getElementById("fileImportBase").addEventListener("change", (ev) => {
+    const f = ev.target.files[0];
+    ev.target.value = "";
+    if (f) iniciarImportacion(f);
+  });
+  document.getElementById("btnPlantillaBase").addEventListener("click", descargarPlantilla);
+  document.getElementById("btnExportarBase").addEventListener("click", exportarBase);
+  document.getElementById("btnGenerarPublico").addEventListener("click", generarPublico);
+}
+
+/* ---------- Init ---------- */
+if (!MODO_PUBLICO) pintarBase();
+
+</script></body></html>
